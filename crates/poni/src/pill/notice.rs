@@ -120,7 +120,7 @@ fn inline_done(st: &AppState, n: &Notice, a: InlineAction) -> bool {
         // Done once clicked: the app puts the check in the notice's icon.
         InlineAction::WhatsNew => n.icon == Icon::Check,
         // Hide and Open take the notice away at once.
-        InlineAction::Hide | InlineAction::Open => false,
+        InlineAction::Hide | InlineAction::Open | InlineAction::TeamsMic => false,
     }
 }
 

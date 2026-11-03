@@ -2567,7 +2567,7 @@ impl App {
             match n.action {
                 Some(NoticeAction::OpenPage(p)) => self.st.page = p,
                 Some(NoticeAction::OpenUpdate) => self.st.open_update(),
-                Some(NoticeAction::OpenApp(_)) | Some(NoticeAction::FocusClaude(_)) | Some(NoticeAction::Join(_)) => {}
+                Some(NoticeAction::OpenApp(_)) | Some(NoticeAction::FocusClaude(_)) | Some(NoticeAction::Join(_)) | Some(NoticeAction::FocusCall) => {}
                 Some(NoticeAction::StartFocus) => {
                     self.st.page = PageKind::Focus;
                     if !self.st.pomodoro.is_active() {
@@ -2850,7 +2850,7 @@ impl App {
         }
         match a {
             InlineAction::StartFocus => st.pomodoro.start(st.now),
-            InlineAction::ShowAmount | InlineAction::StopAdzan | InlineAction::Hide | InlineAction::WhatsNew | InlineAction::Open => {}
+            InlineAction::ShowAmount | InlineAction::StopAdzan | InlineAction::Hide | InlineAction::WhatsNew | InlineAction::Open | InlineAction::TeamsMic => {}
         }
         let until = st.now + INLINE_DONE_S;
         if let Some(n) = st.notice.as_mut() {

@@ -145,6 +145,8 @@ pub enum AppEvent {
     /// The next meetings in Outlook's calendar (read every few minutes).
     #[cfg(windows)]
     Meetings(Vec<crate::services::meetings::Meeting>),
+    /// A Teams call started (true) or ended.
+    TeamsCall(bool),
     /// A full-screen app took over (or left) the island's monitor. `true` is
     /// sent again when another window comes to the foreground while the
     /// monitor stays full-screen, so the island can be raised back on top.

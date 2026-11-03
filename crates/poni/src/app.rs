@@ -422,6 +422,8 @@ pub struct App {
     /// "in 5 min" (1) and "now" (2).
     meetings: Vec<services::meetings::Meeting>,
     meetings_told: Vec<(i64, String, u8)>,
+    /// Teams has the microphone open: a call is on (services::calls).
+    teams_call: bool,
     /// Animation time of the last frame (the vblank it was shown on).
     last_frame_t: f64,
     /// The window: a fixed-size surface the island is drawn in, centred on
@@ -706,6 +708,7 @@ impl App {
             mirrors: Default::default(),
             meetings: Vec::new(),
             meetings_told: Vec::new(),
+            teams_call: false,
             last_frame_t: 0.0,
             surface: Surface::default(),
             cx: 0.0,
@@ -1109,6 +1112,12 @@ impl App {
                 }
                 Some(NoticeAction::Join(url)) => {
                     shell::open(&url);
+                    opened = true;
+                }
+                Some(NoticeAction::FocusCall) => {
+                    services::calls::focus_call();
+                    // The call's notice stays while the call does.
+                    self.show_call_notice();
                     opened = true;
                 }
                 None => {}
@@ -1834,6 +1843,10 @@ impl App {
             TIMER_MINUTE => {
                 self.schedule_minute_timer();
                 self.meeting_heads_up();
+                // Another notice took the call's place and has gone.
+                if self.teams_call && self.st.notice.is_none() {
+                    self.show_call_notice();
+                }
                 self.close_idle_phone();
             }
             TIMER_TRAY => {
@@ -2593,6 +2606,15 @@ impl App {
                 }
             }
             AppEvent::Claude(ev) => self.on_claude(ev),
+            AppEvent::TeamsCall(on) => {
+                self.teams_call = on;
+                if on {
+                    self.show_call_notice();
+                } else if self.st.notice.as_ref().is_some_and(|n| n.action == Some(NoticeAction::FocusCall)) {
+                    self.st.notice = None;
+                }
+                self.request_frame();
+            }
             AppEvent::Meetings(list) => {
                 self.meetings = list;
                 self.meeting_heads_up();
@@ -3454,6 +3476,14 @@ impl App {
         // The refresh rate may have changed too (60 <-> 144 Hz).
         self.clock.set_monitor(m.handle);
         self.sync_every_display();
+        self.request_frame();
+    }
+
+    /// While a Teams call is on: a notice that stays, Mute in it (Teams'
+    /// own shortcut) and a click bringing the call window in front.
+    fn show_call_notice(&mut self) {
+        self.st.notify(Icon::Phone, palette::GREEN, "Teams call", "Click to open the call", f64::INFINITY, Some(NoticeAction::FocusCall));
+        self.st.set_notice_inline(InlineAction::TeamsMic);
         self.request_frame();
     }
 
@@ -4347,6 +4377,11 @@ impl App {
     /// then show a check mark in the pill briefly before the notice leaves.
     fn run_inline_action(&mut self, a: InlineAction) {
         self.refresh_time();
+        if a == InlineAction::TeamsMic {
+            // The notice stays for the whole call.
+            services::calls::teams_shortcut(b'M');
+            return;
+        }
         if a == InlineAction::Open {
             // Another app's notification: that app opens and the notice goes.
             if let Some(Notice { action: Some(NoticeAction::OpenApp(id)), .. }) = self.st.notice.take() {
@@ -4391,7 +4426,7 @@ impl App {
         }
         match a {
             InlineAction::StartFocus => st.pomodoro.start(st.now),
-            InlineAction::ShowAmount | InlineAction::StopAdzan | InlineAction::Hide | InlineAction::WhatsNew | InlineAction::Open => {}
+            InlineAction::ShowAmount | InlineAction::StopAdzan | InlineAction::Hide | InlineAction::WhatsNew | InlineAction::Open | InlineAction::TeamsMic => {}
         }
         let until = st.now + INLINE_DONE_S;
         if let Some(n) = st.notice.as_mut() {

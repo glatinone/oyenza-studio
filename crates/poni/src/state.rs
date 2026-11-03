@@ -145,6 +145,8 @@ pub enum NoticeAction {
     FocusClaude(String),
     /// Join a meeting: its https link (Teams, Meet, Zoom).
     Join(String),
+    /// Bring Teams' call window in front.
+    FocusCall,
 }
 
 /// A one-click action shown as a small pill inside a notice (doesn't expand).
@@ -164,6 +166,8 @@ pub enum InlineAction {
     WhatsNew,
     /// Open the app a notification came from (the notice's `OpenApp`).
     Open,
+    /// A Teams call's notice: Teams' own mute shortcut (services::calls).
+    TeamsMic,
 }
 
 /// Whether this copy may read other apps' notifications (the Notifications
