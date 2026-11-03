@@ -408,6 +408,9 @@ pub struct App {
     ielts_turn: bool,
     /// The glass was still changing on the last frame (turning light or dark).
     glass_moving: bool,
+    /// The frame clock ran last frame: when it stops, the GPU's spare
+    /// memory goes back to Windows (`Gfx::trim`).
+    frames_running: bool,
     /// Animation time of the last frame (the vblank it was shown on).
     last_frame_t: f64,
     /// The window: a fixed-size surface the island is drawn in, centred on
@@ -686,6 +689,7 @@ impl App {
             in_selftest: selftest.is_some(),
             ielts_turn: false,
             glass_moving: false,
+            frames_running: false,
             last_frame_t: 0.0,
             surface: Surface::default(),
             cx: 0.0,
@@ -1337,7 +1341,13 @@ impl App {
             }
             WM_KEYDOWN => {
                 if self.text_focus {
+                    let ctrl = unsafe { GetKeyState(VK_CONTROL.0 as i32) } < 0;
                     let k = match VIRTUAL_KEY(wp.0 as u16) {
+                        VK_BACK if ctrl => Some(KeyInput::WordBackspace),
+                        VK_DELETE if ctrl => Some(KeyInput::WordDelete),
+                        VK_LEFT if ctrl => Some(KeyInput::WordLeft),
+                        VK_RIGHT if ctrl => Some(KeyInput::WordRight),
+                        VK_A if ctrl => Some(KeyInput::SelectAll),
                         VK_BACK => Some(KeyInput::Backspace),
                         VK_DELETE => Some(KeyInput::Delete),
                         VK_RETURN => Some(KeyInput::Enter),
@@ -1348,7 +1358,7 @@ impl App {
                         VK_DOWN => Some(KeyInput::Down),
                         VK_HOME => Some(KeyInput::Home),
                         VK_END => Some(KeyInput::End),
-                        VK_V if unsafe { GetKeyState(VK_CONTROL.0 as i32) } < 0 => {
+                        VK_V if ctrl => {
                             if let Some(text) = services::clipboard::read_text(self.hwnd) {
                                 for c in text.chars().filter(|c| !c.is_control()) {
                                     self.input.keys.push(KeyInput::Char(c));
@@ -3918,8 +3928,8 @@ impl App {
 
         // Decide whether to keep the frame clock running. Real motion runs
         // at the display's full refresh rate; ambient motion runs on every
-        // n-th refresh (the equalizer near 60 fps, a drifting progress bar
-        // near 30) and pauses while the session is locked or the display off.
+        // n-th refresh (the equalizer and a drifting progress bar near 30 fps:
+        // small bars read as smooth there, at half the frames of 60) and pauses while the session is locked or the display off.
         let ambient_ok = !self.locked && !self.display_off;
         let eq_live = ambient_ok && activities::is_live(&self.mode, &self.st);
         let drift_live = ambient_ok && ui_live;
@@ -3938,12 +3948,15 @@ impl App {
         let hz = self.clock.nominal_hz();
         self.clock.set_divisor(if moving {
             1
-        } else if eq_live {
-            ambient_divisor(hz, 60.0)
         } else {
             ambient_divisor(hz, 30.0)
         });
-        self.clock.set_active(moving || eq_live || drift_live);
+        let running = moving || eq_live || drift_live;
+        self.clock.set_active(running);
+        if self.frames_running && !running {
+            self.gfx.trim();
+        }
+        self.frames_running = running;
         self.schedule_wake();
         if !self.log_queue.is_empty() {
             let lines = std::mem::take(&mut self.log_queue);

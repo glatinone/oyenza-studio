@@ -82,7 +82,9 @@ pub fn site_from_window_title(window_title: &str, media_title: &str) -> Option<&
     if media_title.is_empty() || !window_title.contains(media_title) {
         return None;
     }
-    if window_title.contains(" - YouTube Music") {
+    // YouTube Music titles its tab "Song | YouTube Music" (Nov 2026), "Song -
+    // YouTube Music" before.
+    if window_title.contains(" - YouTube Music") || window_title.contains(" | YouTube Music") {
         Some("YouTube Music")
     } else if window_title.contains(" - YouTube") {
         Some("YouTube")
@@ -189,6 +191,10 @@ mod tests {
             Some("YouTube")
         );
         assert_eq!(site_from_window_title("Paper Boats - YouTube Music - Google Chrome", "Paper Boats"), Some("YouTube Music"));
+        assert_eq!(
+            site_from_window_title("Paper Boats | YouTube Music and 19 more pages - Work - Microsoft\u{200b} Edge", "Paper Boats"),
+            Some("YouTube Music")
+        );
         // Another tab or site in front, or no title to compare.
         assert_eq!(site_from_window_title("Other Video - YouTube - Google Chrome", t), None);
         assert_eq!(site_from_window_title(&format!("{t} - Vimeo - Google Chrome"), t), None);

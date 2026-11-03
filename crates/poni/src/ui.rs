@@ -21,6 +21,35 @@ pub fn wid(s: &str) -> WidgetId {
     h
 }
 
+/// Where a word that ends at `i` starts, the way Windows edit boxes move:
+/// skip spaces, then a run of letters and digits or a run of punctuation.
+fn word_left(chars: &[char], mut i: usize) -> usize {
+    while i > 0 && chars[i - 1].is_whitespace() {
+        i -= 1;
+    }
+    let word = i > 0 && chars[i - 1].is_alphanumeric();
+    while i > 0 && !chars[i - 1].is_whitespace() && chars[i - 1].is_alphanumeric() == word {
+        i -= 1;
+    }
+    i
+}
+
+/// Where the next word starts after `i`: the rest of this word (or
+/// punctuation run), then the spaces after it.
+fn word_right(chars: &[char], mut i: usize) -> usize {
+    let n = chars.len();
+    if i < n && !chars[i].is_whitespace() {
+        let word = chars[i].is_alphanumeric();
+        while i < n && !chars[i].is_whitespace() && chars[i].is_alphanumeric() == word {
+            i += 1;
+        }
+    }
+    while i < n && chars[i].is_whitespace() {
+        i += 1;
+    }
+    i
+}
+
 /// Widget id for the `n`-th item of a list.
 pub fn wid_n(s: &str, n: u64) -> WidgetId {
     wid(s) ^ n.wrapping_mul(0x9E3779B97F4A7C15)
@@ -37,6 +66,12 @@ pub enum KeyInput {
     Char(char),
     Backspace,
     Delete,
+    /// Ctrl+Backspace / Ctrl+Delete: remove the word before / after the caret.
+    WordBackspace,
+    WordDelete,
+    /// Ctrl+Left / Ctrl+Right: move the caret a word at a time.
+    WordLeft,
+    WordRight,
     Enter,
     Escape,
     Left,
@@ -404,6 +439,19 @@ impl<'a, 'g> Ui<'a, 'g> {
                         chars.remove(caret);
                         out.changed = true;
                     }
+                    KeyInput::WordBackspace if caret > 0 => {
+                        let start = word_left(&chars, caret);
+                        chars.drain(start..caret);
+                        caret = start;
+                        out.changed = true;
+                    }
+                    KeyInput::WordDelete if caret < chars.len() => {
+                        let end = word_right(&chars, caret);
+                        chars.drain(caret..end);
+                        out.changed = true;
+                    }
+                    KeyInput::WordLeft => caret = word_left(&chars, caret),
+                    KeyInput::WordRight => caret = word_right(&chars, caret),
                     KeyInput::Left => caret = caret.saturating_sub(1),
                     KeyInput::Right => caret = (caret + 1).min(chars.len()),
                     KeyInput::Home => caret = 0,
@@ -505,5 +553,32 @@ impl<'a, 'g> Ui<'a, 'g> {
             self.input.focused = None;
             self.wants_focus = Some(false);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{word_left, word_right};
+
+    fn c(s: &str) -> Vec<char> {
+        s.chars().collect()
+    }
+
+    #[test]
+    fn ctrl_backspace_takes_one_word() {
+        let t = c("beli susu  ");
+        assert_eq!(word_left(&t, t.len()), 5);
+        assert_eq!(word_left(&t, 4), 0);
+        assert_eq!(word_left(&c("a, b"), 2), 1);
+        assert_eq!(word_left(&c("rapat jam-3"), 11), 10);
+        assert_eq!(word_left(&c(""), 0), 0);
+    }
+
+    #[test]
+    fn ctrl_delete_takes_word_and_spaces() {
+        let t = c("beli  susu");
+        assert_eq!(word_right(&t, 0), 6);
+        assert_eq!(word_right(&t, 6), 10);
+        assert_eq!(word_right(&t, 10), 10);
     }
 }

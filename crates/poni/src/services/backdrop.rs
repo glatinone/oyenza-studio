@@ -398,6 +398,15 @@ fn run(s: &Shared, sink: &EventSink, monitor: isize) -> std::result::Result<(), 
             let ddesc = dup.GetDesc();
             let (ow, oh) = (ddesc.ModeDesc.Width as i32, ddesc.ModeDesc.Height as i32);
             let mut fresh = true; // a new duplication starts with the whole screen
+            // The island's own redraws dirty its rectangle too, so most frames
+            // that touch it change nothing underneath. Copying on the GPU is
+            // cheap; reading the copy back stalls and costs CPU, so reads are
+            // paced: READ_FAST after a real change, slowing to READ_SLOW while
+            // reads keep finding the same pixels. A copy waiting to be read
+            // (`staged`) is read once its gap is up, even with no new frame.
+            let mut staged: Option<(RECT, i32, i32, DXGI_FORMAT)> = None;
+            let mut last_read: Option<Instant> = None;
+            let mut gap = READ_FAST;
             loop {
                 if s.stop.load(Ordering::Relaxed) {
                     return Ok(());
@@ -405,9 +414,24 @@ fn run(s: &Shared, sink: &EventSink, monitor: isize) -> std::result::Result<(), 
                 if s.rect_gen.load(Ordering::Relaxed) != rect_gen {
                     continue 'dup;
                 }
+                // A copy that waited out its gap is read now, whether or not
+                // a new frame came (frames that miss the island can keep
+                // coming faster than the wait below runs out).
+                if let Some(st) = staged.filter(|_| due_in(last_read, gap).is_zero()) {
+                    staged = None;
+                    last_read = Some(Instant::now());
+                    match read_staged(&ctx, &staging, st.3, to_srgb.as_ref(), st.1, st.2) {
+                        Ok(px) => {
+                            let changed = publish(s, sink, &mut last, &mut announced, px, st.0, st.1, st.2, hdr, white, &name, ow, oh);
+                            gap = next_gap(gap, changed);
+                        }
+                        Err(e) => crate::pwarn!("glass: reading the screen copy failed ({e})"),
+                    }
+                }
                 let mut info = DXGI_OUTDUPL_FRAME_INFO::default();
                 let mut res: Option<IDXGIResource> = None;
-                match dup.AcquireNextFrame(250, &mut info, &mut res) {
+                let wait_ms = if staged.is_some() { (due_in(last_read, gap).as_millis() as u32).clamp(1, 250) } else { 250 };
+                match dup.AcquireNextFrame(wait_ms, &mut info, &mut res) {
                     Ok(()) => {}
                     Err(e) if e.code() == DXGI_ERROR_WAIT_TIMEOUT => continue,
                     Err(e) => {
@@ -438,9 +462,20 @@ fn run(s: &Shared, sink: &EventSink, monitor: isize) -> std::result::Result<(), 
                             let _ = dup.ReleaseFrame();
                             return Err(format!("the display sends {:?} pixels", tdesc.Format));
                         }
-                        let convert = if half { to_srgb.as_ref() } else { None };
-                        match copy_area(&dev, &ctx, &tex, tdesc.Format, convert, &mut staging, area, rect, origin, w, h) {
-                            Ok(px) => copied = Some(px),
+                        match stage_area(&dev, &ctx, &tex, tdesc.Format, &mut staging, area, rect, origin, w, h) {
+                            Ok(()) if fresh || due_in(last_read, gap).is_zero() => {
+                                staged = None;
+                                last_read = Some(Instant::now());
+                                match read_staged(&ctx, &staging, tdesc.Format, to_srgb.as_ref(), w, h) {
+                                    Ok(px) => copied = Some(px),
+                                    Err(e) => crate::pwarn!("glass: reading the screen copy failed ({e})"),
+                                }
+                            }
+                            Ok(()) => {
+                                staged = Some((rect, w, h, tdesc.Format));
+                                // Hand the copy to the GPU before the frame goes back.
+                                ctx.Flush();
+                            }
                             Err(e) => crate::pwarn!("glass: copying the screen failed ({e})"),
                         }
                     }
@@ -449,45 +484,73 @@ fn run(s: &Shared, sink: &EventSink, monitor: isize) -> std::result::Result<(), 
                 tries = 0;
                 if let Some(px) = copied {
                     fresh = false;
-                    // Dirty rectangles also cover redraws that changed nothing.
-                    let same = last.as_ref().is_some_and(|l| l.w == w && l.h == h && l.left == rect.left && l.top == rect.top && l.px == px);
-                    if !same {
-                        let generation = s.generation.load(Ordering::Relaxed) + 1;
-                        let f = Arc::new(Frame { w, h, px, left: rect.left, top: rect.top, generation });
-                        *s.latest.lock().unwrap_or_else(|p| p.into_inner()) = Some(f.clone());
-                        s.generation.store(generation, Ordering::Release);
-                        last = Some(f);
-                        if !announced {
-                            announced = true;
-                            *s.status.lock().unwrap_or_else(|p| p.into_inner()) = Status::Running;
-                            let mode = if hdr { format!(", HDR, SDR white {:.0} nits", white * 80.0) } else { String::new() };
-                            crate::pinfo!("glass: screen copy on ({name}, {ow}x{oh}{mode}, window {w}x{h} px)");
-                        }
-                        sink.send(AppEvent::Backdrop);
-                    }
+                    let changed = publish(s, sink, &mut last, &mut announced, px, rect, w, h, hdr, white, &name, ow, oh);
+                    gap = next_gap(gap, changed);
                 }
             }
         }
     }
 }
 
-/// Copy the window's rectangle out of the desktop image (8-bit BGRA, or half
-/// floats mapped through `to_srgb`) into memory as 8-bit BGRA. (The window
-/// sits on this display; a part off it would keep an older copy.)
+/// Read-back pacing: right after the pixels under the island changed, and
+/// the slowest it gets while they stay the same (the frosting blurs them, so
+/// a few frames' delay doesn't show).
+const READ_FAST: Duration = Duration::from_millis(33);
+const READ_SLOW: Duration = Duration::from_millis(200);
+
+fn next_gap(gap: Duration, changed: bool) -> Duration {
+    if changed {
+        READ_FAST
+    } else {
+        (gap * 2).min(READ_SLOW)
+    }
+}
+
+/// How long until the next read may run, `gap` after the last one.
+fn due_in(last: Option<Instant>, gap: Duration) -> Duration {
+    last.map_or(Duration::ZERO, |t| gap.saturating_sub(t.elapsed()))
+}
+
+/// Keep `px` as the newest copy and wake the UI, unless it's what the last
+/// one showed (dirty rectangles also cover redraws that changed nothing).
+/// Whether it was new.
 #[allow(clippy::too_many_arguments)]
-unsafe fn copy_area(
+fn publish(s: &Shared, sink: &EventSink, last: &mut Option<Arc<Frame>>, announced: &mut bool, px: Vec<u8>, rect: RECT, w: i32, h: i32, hdr: bool, white: f32, name: &str, ow: i32, oh: i32) -> bool {
+    let same = last.as_ref().is_some_and(|l| l.w == w && l.h == h && l.left == rect.left && l.top == rect.top && l.px == px);
+    if same {
+        return false;
+    }
+    let generation = s.generation.load(Ordering::Relaxed) + 1;
+    let f = Arc::new(Frame { w, h, px, left: rect.left, top: rect.top, generation });
+    *s.latest.lock().unwrap_or_else(|p| p.into_inner()) = Some(f.clone());
+    s.generation.store(generation, Ordering::Release);
+    *last = Some(f);
+    if !*announced {
+        *announced = true;
+        *s.status.lock().unwrap_or_else(|p| p.into_inner()) = Status::Running;
+        let mode = if hdr { format!(", HDR, SDR white {:.0} nits", white * 80.0) } else { String::new() };
+        crate::pinfo!("glass: screen copy on ({name}, {ow}x{oh}{mode}, window {w}x{h} px)");
+    }
+    sink.send(AppEvent::Backdrop);
+    true
+}
+
+/// Copy the window's rectangle out of the desktop image into the staging
+/// texture, on the GPU. (The window sits on this display; a part off it
+/// would keep an older copy.)
+#[allow(clippy::too_many_arguments)]
+unsafe fn stage_area(
     dev: &ID3D11Device,
     ctx: &ID3D11DeviceContext,
     desktop: &ID3D11Texture2D,
     format: DXGI_FORMAT,
-    to_srgb: Option<&HalfToSrgb>,
     staging: &mut Option<(ID3D11Texture2D, i32, i32, DXGI_FORMAT)>,
     area: RECT,
     rect: RECT,
     origin: (i32, i32),
     w: i32,
     h: i32,
-) -> Result<Vec<u8>> {
+) -> Result<()> {
     if !staging.as_ref().is_some_and(|s| s.1 == w && s.2 == h && s.3 == format) {
         let desc = D3D11_TEXTURE2D_DESC {
             Width: w as u32,
@@ -510,6 +573,22 @@ unsafe fn copy_area(
     let (dx, dy) = ((area.left + origin.0 - rect.left) as u32, (area.top + origin.1 - rect.top) as u32);
     let src = D3D11_BOX { left: area.left as u32, top: area.top as u32, front: 0, right: area.right as u32, bottom: area.bottom as u32, back: 1 };
     ctx.CopySubresourceRegion(st, 0, dx, dy, 0, desktop, 0, Some(&src));
+    Ok(())
+}
+
+/// Read the staged copy into memory as 8-bit BGRA (half floats mapped
+/// through `to_srgb`).
+unsafe fn read_staged(
+    ctx: &ID3D11DeviceContext,
+    staging: &Option<(ID3D11Texture2D, i32, i32, DXGI_FORMAT)>,
+    format: DXGI_FORMAT,
+    to_srgb: Option<&HalfToSrgb>,
+    w: i32,
+    h: i32,
+) -> Result<Vec<u8>> {
+    let Some((st, ..)) = staging.as_ref().filter(|s| s.1 == w && s.2 == h && s.3 == format) else {
+        return Err(windows::Win32::Foundation::E_FAIL.into());
+    };
     let mut m = D3D11_MAPPED_SUBRESOURCE::default();
     ctx.Map(st, 0, D3D11_MAP_READ, 0, Some(&mut m))?;
     let row = w as usize * 4;

@@ -328,7 +328,7 @@ fn hidden_strip() -> Geom {
     Geom::new(150.0, 5.0, 2.5)
 }
 
-/// Needs continuous ambient frames (near 60 fps): animated equalizer while music plays.
+/// Needs continuous ambient frames (near 30 fps): animated equalizer while music plays.
 /// A paused (lingering) pill is static, once Oyen's notes are gone.
 pub fn is_live(m: &Mode, st: &AppState) -> bool {
     if let Some(live) = crate::pill::is_live(m, st) {

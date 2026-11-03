@@ -166,7 +166,7 @@ pub(crate) fn fit_w() -> f32 {
     FIT_W.get()
 }
 
-/// The bars move at the equalizer's ambient rate (near 60 fps, as in
+/// The bars move at the equalizer's ambient rate (near 30 fps, as in
 /// Classic) while music plays, and not on battery saver: there they stand
 /// still and the pill draws only when its text changes.
 pub fn is_live(st: &AppState) -> Option<bool> {

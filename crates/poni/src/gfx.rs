@@ -1360,6 +1360,22 @@ impl Gfx {
         }
     }
 
+    /// Nothing moves any more: hand back what the GPU path keeps only to go
+    /// faster (Direct2D's caches, the driver's spare allocations). The next
+    /// frame rebuilds what it needs; this runs once per stop, not per frame.
+    pub fn trim(&mut self) {
+        if let Some(g) = self.gpu.as_ref() {
+            unsafe {
+                if let Ok(dev) = g.dc.GetDevice() {
+                    dev.ClearResources(0);
+                }
+                if let Ok(dxgi) = g.d3d.cast::<IDXGIDevice3>() {
+                    dxgi.Trim();
+                }
+            }
+        }
+    }
+
     /// The app shows or hides the island: the visual window follows while
     /// the GPU renderer draws in it.
     pub fn set_shown(&mut self, on: bool) {

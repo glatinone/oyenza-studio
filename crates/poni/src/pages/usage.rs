@@ -1118,6 +1118,7 @@ fn key_field(ui: &mut Ui, id: WidgetId, r: Rect, buf: &mut String, hint: &str, a
             KeyInput::Backspace | KeyInput::Delete => {
                 buf.pop();
             }
+            KeyInput::WordBackspace | KeyInput::WordDelete => buf.clear(),
             KeyInput::Enter => submitted = true,
             KeyInput::Escape => cancelled = true,
             _ => {}

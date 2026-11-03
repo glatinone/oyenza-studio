@@ -1214,12 +1214,16 @@ fn browser_site(media_title: &str) -> Option<&'static str> {
     search.found
 }
 
-/// YouTube Music installed as a browser web app.
+/// YouTube Music installed as a browser web app: Chrome's preinstalled copy,
+/// and the one Edge (or Chrome) makes from the site's own manifest, whose id
+/// comes from its start URL (`https://music.youtube.com/?source=pwa`).
 const YT_MUSIC_CRX: &str = "cinhimbnkkaeohfgghhklpknlkffjgod";
+const YT_MUSIC_SITE_CRX: &str = "hdlinipmgijhmcflchogagdngjpcmmhp";
 
 /// Lower-case AUMID fragments → friendly names (first match wins).
 const KNOWN_APPS: &[(&str, &str)] = &[
     (YT_MUSIC_CRX, "YouTube Music"),
+    (YT_MUSIC_SITE_CRX, "YouTube Music"),
     ("youtube-music", "YouTube Music"),
     ("youtubemusic", "YouTube Music"),
     ("ytmdesktop", "YouTube Music"),
@@ -1242,7 +1246,7 @@ fn known_app_name(aumid: &str) -> Option<&'static str> {
         return Some("Firefox");
     }
     // Other browser web apps ("Chrome._crx_<id>"): let the shell name them.
-    if id.contains("_crx_") && !id.contains(YT_MUSIC_CRX) {
+    if id.contains("_crx_") && !id.contains(YT_MUSIC_CRX) && !id.contains(YT_MUSIC_SITE_CRX) {
         return None;
     }
     KNOWN_APPS.iter().find(|(k, _)| id.contains(k)).map(|(_, v)| *v)
@@ -1317,6 +1321,7 @@ mod tests {
         assert_eq!(known_app_name("AppleInc.AppleMusicWin_nzyj5cx40ttqa!App"), Some("Apple Music"));
         assert_eq!(known_app_name("com.github.th-ch.youtube-music"), Some("YouTube Music"));
         assert_eq!(known_app_name("Chrome._crx_cinhimbnkkaeohfgghhklpknlkffjgod"), Some("YouTube Music"));
+        assert_eq!(known_app_name("MSEdge._crx_hdlinipmgijhmcflchogagdngjpcmmhp"), Some("YouTube Music"));
         assert_eq!(known_app_name("Chrome._crx_abcdefabcdefabcdefabcdefabcdefab"), None);
         assert_eq!(known_app_name("SomePlayer.exe"), None);
     }
