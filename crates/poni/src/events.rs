@@ -187,6 +187,9 @@ pub enum AppEvent {
     Located(crate::services::location::Located),
     /// One of prayer times' online city files (`services::cities`).
     Cities { file: String, got: Result<poni_core::prayer::World, String> },
+    /// YouTube Music's songs for a search (the Music page).
+    #[cfg(windows)]
+    MusicFound { query: String, got: Result<Vec<crate::services::ytmusic::Track>, String> },
     /// The Stocks page's prices, names and years (`services::stocks`).
     Stocks(crate::services::stocks::StocksEvent),
     /// One of yt-dlp's lines for download `id` (`services::downloader`).

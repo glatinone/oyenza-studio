@@ -44,6 +44,7 @@ pub mod sysstats;
 pub mod update;
 pub mod usage;
 pub mod voice;
+pub mod ytmusic;
 
 use crate::commands::{MediaCmd, OyenzaCmd, UsageCmd};
 use crate::events::EventSink;

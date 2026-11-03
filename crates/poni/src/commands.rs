@@ -233,6 +233,10 @@ pub enum Command {
     /// Get one of Prayer times' online city files ("ed", "near/55_-5"; the
     /// answer: `AppEvent::Cities`).
     GetCities(String),
+    /// Search YouTube Music (the Music page).
+    MusicSearch(String),
+    /// Play this YouTube Music song in the person's YouTube Music tab.
+    MusicPlay(String),
     /// Notifications.
     Notify(NotifyCmd),
     Usage(UsageCmd),

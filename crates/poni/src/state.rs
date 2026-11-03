@@ -326,10 +326,27 @@ impl PhoneDrop {
     }
 }
 
+/// The Music page's search: what is typed, what was asked for last and
+/// what came back (`services::ytmusic`).
+#[derive(Clone, Debug, Default)]
+pub struct MusicSearch {
+    pub query: String,
+    /// The query the results are for, or are coming for.
+    pub asked: Option<String>,
+    pub busy: bool,
+    pub failed: bool,
+    #[cfg(windows)]
+    pub results: Vec<crate::services::ytmusic::Track>,
+    /// The highlighted result (Up and Down; Enter plays it).
+    pub hit: usize,
+}
+
 /// Transient per-page UI state (scroll offsets, text being typed, …).
 #[derive(Clone, Debug, Default)]
 pub struct PageUiState {
     pub task_input: String,
+    /// The Music page's YouTube Music search.
+    pub music: MusicSearch,
     pub task_scroll: f32,
     pub shelf_scroll: f32,
     /// The Today page's list: how far it's scrolled (DIPs), the date clicked

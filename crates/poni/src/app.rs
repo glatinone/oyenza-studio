@@ -2766,6 +2766,24 @@ impl App {
             }
             AppEvent::Located(found) => self.on_located(found),
             AppEvent::Cities { file, got } => pages::prayer::cities_came(&mut self.st, file, got),
+            AppEvent::MusicFound { query, got } => {
+                let s = &mut self.st.ui.music;
+                if s.asked.as_deref() == Some(query.as_str()) {
+                    s.busy = false;
+                    s.hit = 0;
+                    match got {
+                        Ok(list) => {
+                            s.failed = false;
+                            s.results = list;
+                        }
+                        Err(_) => {
+                            s.failed = true;
+                            s.results.clear();
+                        }
+                    }
+                    self.request_frame();
+                }
+            }
             AppEvent::Stocks(ev) => self.st.stocks.apply(ev, self.st.unix),
             AppEvent::Notify(ev) => self.on_notify(ev),
             AppEvent::Usage(ev) => self.on_usage(ev),
@@ -5054,6 +5072,8 @@ impl App {
                         services::cities::fetch(file, self.sink.clone());
                     }
                 }
+                Command::MusicSearch(q) => services::ytmusic::search(q, self.sink.clone()),
+                Command::MusicPlay(id) => services::ytmusic::play(id),
                 Command::Download(c) => self.download_cmd(c),
                 Command::Notify(c) => self.notify_cmd(c),
             }

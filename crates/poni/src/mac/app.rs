@@ -2968,6 +2968,7 @@ impl App {
                 Command::Pair(_) => {}
                 Command::Oyenza(c) => self.oyenza(c),
                 Command::GetCities(file) => services::cities::fetch(file, self.sink.clone()),
+                Command::MusicSearch(_) | Command::MusicPlay(_) => {}
                 Command::Download(c) => self.download_cmd(c),
                 // Notifications is a Windows add-on: a Mac can't read other apps' notifications.
                 Command::Notify(_) => {}

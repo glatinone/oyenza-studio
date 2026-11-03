@@ -305,6 +305,10 @@ fn intersect(a: Rect, b: Rect) -> Rect {
 // ---------------------------------------------------------------- page
 
 pub fn height(st: &AppState) -> f32 {
+    player_height(st) + search_height(st)
+}
+
+fn player_height(st: &AppState) -> f32 {
     if let Some(h) = crate::pill::music::height(st) {
         return h;
     }
@@ -316,6 +320,133 @@ pub fn height(st: &AppState) -> f32 {
 }
 
 pub fn draw(ui: &mut Ui, st: &mut AppState, area: Rect) {
+    let player_h = player_height(st);
+    let player = Rect::new(area.x, area.y, area.w, player_h);
+    if cfg!(windows) {
+        draw_search(ui, st, Rect::new(area.x, area.y + player_h + SEARCH_GAP, area.w, search_height(st) - SEARCH_GAP));
+    }
+    draw_player(ui, st, player);
+}
+
+// ---------------------------------------------------------------- search
+
+/// The YouTube Music search under the player: the field, then its songs.
+const SEARCH_GAP: f32 = 12.0;
+const SEARCH_FIELD_H: f32 = 36.0;
+const RESULT_H: f32 = 40.0;
+const RESULTS_GAP: f32 = 6.0;
+const SEARCH_NOTE_H: f32 = 24.0;
+
+fn search_height(st: &AppState) -> f32 {
+    if !cfg!(windows) {
+        return 0.0;
+    }
+    let s = &st.ui.music;
+    #[cfg(windows)]
+    let n = s.results.len();
+    #[cfg(not(windows))]
+    let n = 0usize;
+    let below = if n > 0 {
+        RESULTS_GAP + n as f32 * RESULT_H
+    } else if s.busy || s.failed || s.asked.is_some() {
+        RESULTS_GAP + SEARCH_NOTE_H
+    } else {
+        0.0
+    };
+    SEARCH_GAP + SEARCH_FIELD_H + below
+}
+
+#[cfg(not(windows))]
+fn draw_search(_ui: &mut Ui, _st: &mut AppState, _r: Rect) {}
+
+#[cfg(windows)]
+fn draw_search(ui: &mut Ui, st: &mut AppState, r: Rect) {
+    use crate::ui::KeyInput;
+    let id = wid("music.search");
+    let accent = st.media_accent();
+    let field = Rect::new(r.x, r.y, r.w, SEARCH_FIELD_H);
+    let mut moves = 0i32;
+    if ui.input.focused == Some(id) {
+        ui.input.keys.retain(|k| match k {
+            KeyInput::Up => {
+                moves -= 1;
+                false
+            }
+            KeyInput::Down => {
+                moves += 1;
+                false
+            }
+            _ => true,
+        });
+    }
+    let s = &mut st.ui.music;
+    let resp = ui.text_input_row(id, field, &mut s.query, "Search YouTube Music", 80, accent, Some(Icon::Search));
+    if resp.changed {
+        s.hit = 0;
+    }
+    if !s.results.is_empty() {
+        s.hit = (s.hit as i32 + moves).clamp(0, s.results.len() as i32 - 1) as usize;
+    }
+    let q = s.query.trim().to_string();
+    let fresh = s.asked.as_deref() == Some(q.as_str());
+    let mut play: Option<String> = None;
+    if resp.submitted && !q.is_empty() {
+        if fresh && !s.results.is_empty() {
+            play = s.results.get(s.hit).map(|t| t.id.clone());
+        } else if !(fresh && s.busy) {
+            s.asked = Some(q.clone());
+            s.busy = true;
+            s.failed = false;
+            s.results.clear();
+            st.cmd(Command::MusicSearch(q.clone()));
+        }
+    }
+    let s = &mut st.ui.music;
+    if resp.cancelled {
+        *s = Default::default();
+        ui.blur();
+        return;
+    }
+    let top = r.y + SEARCH_FIELD_H + RESULTS_GAP;
+    if s.results.is_empty() {
+        let note = if s.busy {
+            "Searching\u{2026}"
+        } else if s.failed {
+            "YouTube Music didn't answer. Press Enter to try again."
+        } else if s.asked.is_some() {
+            "No songs by that name."
+        } else {
+            ""
+        };
+        if !note.is_empty() {
+            ui.c.text(note, Rect::new(r.x + 4.0, top, r.w - 8.0, SEARCH_NOTE_H), &TextStyle::footnote().color(palette::TEXT_DIM));
+        }
+    }
+    let hit = s.hit;
+    let results = s.results.clone();
+    for (i, t) in results.iter().enumerate() {
+        let row = Rect::new(r.x, top + i as f32 * RESULT_H, r.w, RESULT_H);
+        let b = ui.button(wid_n("music.result", i as u64), row);
+        if b.clicked {
+            play = Some(t.id.clone());
+        }
+        if i == hit || b.hovered {
+            ui.c.fill_rrect(row.inset(0.0, 1.0), 10.0, Color::white(if b.pressed { 0.12 } else if i == hit { 0.09 } else { 0.06 }));
+        }
+        ui.c.icon(Icon::Play, Rect::from_center(Point::new(row.x + 18.0, row.center().y), 12.0, 12.0), accent);
+        let tx = row.x + 36.0;
+        let tw = (row.right() - tx - 10.0).max(0.0);
+        ui.c.text(&t.title, Rect::new(tx, row.y + 3.0, tw, 19.0), &TextStyle::body().weight(Weight::Semibold));
+        ui.c.text(&t.line, Rect::new(tx, row.y + 21.0, tw, 16.0), &TextStyle::footnote().color(palette::TEXT_DIM));
+    }
+    if let Some(id) = play {
+        st.cmd(Command::MusicPlay(id));
+        st.ui.music = Default::default();
+        ui.blur();
+    }
+}
+
+fn draw_player(ui: &mut Ui, st: &mut AppState, area: Rect) {
     if crate::pill::music::draw(ui, st, area) {
         return;
     }
