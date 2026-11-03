@@ -14,6 +14,11 @@
   A settings.json to restore into %APPDATA%\Poni (only when that has none, unless
   -ForceSettings). Defaults to ~\mybrain\SETUP\floaty\settings.json when present.
 
+.PARAMETER Jx
+  A jx checkout (Kiell's private browser engine). Used for YouTube Music and, when
+  Edge is open, to answer the WhatsApp notification prompt. tools\bootstrap-floaty.ps1
+  fetches it.
+
 .PARAMETER ClaudeConfig
   The Claude Code config folder the AI tab reads (CLAUDE_CONFIG_DIR). Defaults to
   ~\.claude-loka when it exists, else Claude Code's own default.
@@ -21,13 +26,16 @@
 .EXAMPLE
   pwsh -File tools\setup-floaty.ps1
   pwsh -File tools\setup-floaty.ps1 -SkipBuild      # reinstall the last build
+  tools\bootstrap-floaty.ps1                        # new PC: fetch the repos, then this
 #>
 param(
     [string]$Settings = (Join-Path $HOME 'mybrain\SETUP\floaty\settings.json'),
     [string]$ClaudeConfig = (Join-Path $HOME '.claude-loka'),
+    [string]$Jx = (Join-Path $HOME 'Videos\Tools\jx'),
     [switch]$SkipBuild,
     [switch]$ForceSettings,
     [switch]$NoAutostart,
+    [switch]$NoWhatsApp,
     [switch]$NoStart
 )
 $ErrorActionPreference = 'Stop'
@@ -129,7 +137,14 @@ sh.Run "wscript.exe """ & sh.ExpandEnvironmentStrings("%LOCALAPPDATA%") & "\Prog
 if (-not (Test-Path (Join-Path $env:LOCALAPPDATA 'jx\token'))) {
     Note 'jx is not running here: music search will open songs as links instead of in the YouTube Music tab'
 }
-Note 'WhatsApp in Edge: allow web.whatsapp.com notifications once (Edge > Site permissions) for chats on the island'
+# WhatsApp Web toasts reach the island only when Edge allows the site's notifications.
+if (-not $NoWhatsApp) {
+    Step 'WhatsApp notifications in Edge'
+    $py = Get-Command python, py -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($py) {
+        & $py.Source (Join-Path $PSScriptRoot 'edge-allow-notifications.py') 'https://web.whatsapp.com' --jx $Jx | ForEach-Object { Note $_ }
+    } else { Note 'no Python here: skipped' }
+}
 
 if (-not $NoStart) {
     Step 'start'
