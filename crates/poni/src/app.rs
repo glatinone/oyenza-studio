@@ -1096,6 +1096,10 @@ impl App {
                     shell::open_app(&id);
                     opened = true;
                 }
+                Some(NoticeAction::FocusClaude(name)) => {
+                    services::claude::focus_terminal(&name);
+                    opened = true;
+                }
                 None => {}
             }
         }
@@ -2576,6 +2580,7 @@ impl App {
                     }
                 }
             }
+            AppEvent::Claude(ev) => self.on_claude(ev),
             AppEvent::Bluetooth { name, connected, battery, audio } => {
                 if self.st.settings.hud_bluetooth {
                     self.st.show_hud(HudKind::Bluetooth { name, connected, battery, audio }, 2.6);
@@ -3433,6 +3438,33 @@ impl App {
         // The refresh rate may have changed too (60 <-> 144 Hz).
         self.clock.set_monitor(m.handle);
         self.sync_every_display();
+        self.request_frame();
+    }
+
+    /// A Claude Code session finished, needs an approval or failed: a
+    /// notice with its name; a click brings its terminal in front. The
+    /// approval's notice stays until it is answered.
+    fn on_claude(&mut self, ev: services::claude::ClaudeEvent) {
+        use services::claude::ClaudeChange;
+        let approval_shown = |st: &AppState| st.notice.as_ref().is_some_and(|n| n.icon == Icon::Claude && n.color == palette::ORANGE);
+        let (color, what, secs) = match ev.change {
+            ClaudeChange::Done => (palette::GREEN, if ev.detail.is_empty() { "Done".to_string() } else { format!("Done in {}", ev.detail) }, 6.0),
+            ClaudeChange::Approval => (palette::ORANGE, "Needs your approval".to_string(), 120.0),
+            ClaudeChange::Error => (palette::RED, "Stopped with an error".to_string(), 10.0),
+            ClaudeChange::Resumed => {
+                if approval_shown(&self.st) {
+                    self.st.notice = None;
+                    self.request_frame();
+                }
+                return;
+            }
+        };
+        // A newer approval notice is not covered by another session finishing.
+        if ev.change == ClaudeChange::Done && approval_shown(&self.st) {
+            return;
+        }
+        pinfo!("claude: {} {:?}", ev.config, ev.change);
+        self.st.notify(Icon::Claude, color, ev.name.clone(), format!("{what} · {}", ev.config), secs, Some(NoticeAction::FocusClaude(ev.name)));
         self.request_frame();
     }
 

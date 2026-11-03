@@ -141,6 +141,8 @@ pub enum NoticeAction {
     /// Open the app another app's notification came from (its
     /// AppUserModelID; Notifications). The island stays closed.
     OpenApp(String),
+    /// Bring the terminal with this Claude Code session in front.
+    FocusClaude(String),
 }
 
 /// A one-click action shown as a small pill inside a notice (doesn't expand).

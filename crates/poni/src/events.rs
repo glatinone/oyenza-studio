@@ -139,6 +139,9 @@ pub enum AppEvent {
     Volume { level: f32, muted: bool },
     Power(PowerState),
     Bluetooth { name: String, connected: bool, battery: Option<u8>, audio: bool },
+    /// A Claude Code session finished, waits for an approval or failed.
+    #[cfg(windows)]
+    Claude(crate::services::claude::ClaudeEvent),
     /// A full-screen app took over (or left) the island's monitor. `true` is
     /// sent again when another window comes to the foreground while the
     /// monitor stays full-screen, so the island can be raised back on top.
