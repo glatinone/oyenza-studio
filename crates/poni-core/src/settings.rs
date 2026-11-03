@@ -49,6 +49,9 @@ pub enum MonitorChoice {
     /// another screen when a window there comes to the front or is dragged
     /// there.
     Active,
+    /// Every screen at once: the island itself goes to the screen under the
+    /// pointer, the others show a live copy of it.
+    All,
 }
 
 /// Bumped when defaults change in a way existing files should pick up.

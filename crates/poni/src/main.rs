@@ -77,6 +77,8 @@ mod version;
 mod updates;
 #[cfg(windows)]
 mod window;
+#[cfg(windows)]
+mod mirror;
 
 // The Mac app's own modules (same names as their Windows twins, so the
 // shared modules above find them at the same paths).

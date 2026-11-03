@@ -333,7 +333,8 @@ pub enum Act {
 const HOVER: [(u32, &str); 3] = [(120, "Quick"), (220, "Normal"), (450, "Slow")];
 /// How long it stays open after the pointer leaves (ms).
 const CLOSE: [(u32, &str); 3] = [(0, "At once"), (400, "Short"), (1000, "Long")];
-const DISPLAYS: [(MonitorChoice, &str); 3] = [
+const DISPLAYS: [(MonitorChoice, &str); 4] = [
+    (MonitorChoice::All, "Every display"),
     (MonitorChoice::Primary, "Main display"),
     (MonitorChoice::Cursor, "Under the pointer"),
     (MonitorChoice::Active, "Where you work"),

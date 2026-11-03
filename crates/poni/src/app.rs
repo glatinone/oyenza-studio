@@ -64,6 +64,8 @@ const TIMER_RAISE: usize = 9;
 const TIMER_PEEK: usize = 10;
 /// The next read of the update file (`crate::updates`).
 const TIMER_UPDATE: usize = 11;
+/// "Every display": where the pointer is, and the copies on the other screens.
+const TIMER_MIRROR: usize = 12;
 /// Show over games: how long the readout shows over a game, the least time
 /// between two peeks for a frame-rate drop, and Alt+Shift+F's id.
 const PEEK_S: f64 = 5.0;
@@ -414,6 +416,8 @@ pub struct App {
     /// "Where you work": the monitor to move to once the island is closed
     /// and at rest (it never jumps away while open or moving).
     follow_monitor: Option<isize>,
+    /// "Every display": the island's live copies on the other screens.
+    mirrors: crate::mirror::Mirrors,
     /// Animation time of the last frame (the vblank it was shown on).
     last_frame_t: f64,
     /// The window: a fixed-size surface the island is drawn in, centred on
@@ -694,6 +698,7 @@ impl App {
             glass_moving: false,
             frames_running: false,
             follow_monitor: None,
+            mirrors: Default::default(),
             last_frame_t: 0.0,
             surface: Surface::default(),
             cx: 0.0,
@@ -770,6 +775,7 @@ impl App {
     fn start(&mut self) {
         self.layout_surface();
         let fake = self.selftest.is_some();
+        self.sync_every_display();
         self.st.power = services::power::query();
         services::power::register(self.helper);
         if !fake {
@@ -825,6 +831,7 @@ impl App {
         self.set_peek_hotkey(false);
         self.set_script_hotkey(false);
         self.glass.stop(self.hwnd, &mut self.gfx);
+        self.mirrors.clear();
         if let Some(p) = self.phone.take() {
             p.stop();
         }
@@ -1741,6 +1748,7 @@ impl App {
 
     fn on_timer(&mut self, id: usize) {
         match id {
+            TIMER_MIRROR => self.mirror_tick(),
             TIMER_HOVER => {
                 unsafe {
                     let _ = KillTimer(self.hwnd, TIMER_HOVER);
@@ -3409,7 +3417,7 @@ impl App {
 
     fn refresh_monitor(&mut self) {
         let m = match self.st.settings.monitor {
-            MonitorChoice::Cursor | MonitorChoice::Active => {
+            MonitorChoice::Cursor | MonitorChoice::Active | MonitorChoice::All => {
                 window::monitor_info(windows::Win32::Graphics::Gdi::HMONITOR(self.monitor.handle as *mut core::ffi::c_void))
                     .unwrap_or_else(|| window::pick_monitor(MonitorChoice::Primary))
             }
@@ -3423,7 +3431,38 @@ impl App {
         }
         // The refresh rate may have changed too (60 <-> 144 Hz).
         self.clock.set_monitor(m.handle);
+        self.sync_every_display();
         self.request_frame();
+    }
+
+    /// "Every display": watch the pointer and keep the copies on the other
+    /// screens in step (a light timer; the copies themselves are drawn by
+    /// Windows). Any other choice: no copies.
+    fn sync_every_display(&mut self) {
+        if self.st.settings.monitor == MonitorChoice::All && self.selftest.is_none() {
+            unsafe { SetTimer(self.hwnd, TIMER_MIRROR, 100, None) };
+            self.mirrors.sync(window::visual(), &self.monitor);
+        } else {
+            unsafe {
+                let _ = KillTimer(self.hwnd, TIMER_MIRROR);
+            }
+            self.mirrors.clear();
+        }
+    }
+
+    /// "Every display", every 100 ms: the island goes to the screen the
+    /// pointer moved to (once closed and at rest, like "Where you work"),
+    /// and the copies follow wherever it is drawn.
+    fn mirror_tick(&mut self) {
+        let mut p = POINT::default();
+        if unsafe { GetCursorPos(&mut p) }.is_ok() {
+            let h = unsafe { windows::Win32::Graphics::Gdi::MonitorFromPoint(p, windows::Win32::Graphics::Gdi::MONITOR_DEFAULTTONULL) };
+            if !h.is_invalid() && h.0 as isize != self.monitor.handle {
+                self.follow_monitor = Some(h.0 as isize);
+            }
+        }
+        self.follow_active_monitor();
+        self.mirrors.sync(window::visual(), &self.monitor);
     }
 
     fn mouse_dip(&self, lp: LPARAM) -> Point {

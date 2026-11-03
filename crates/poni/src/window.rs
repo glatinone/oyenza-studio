@@ -159,7 +159,7 @@ thread_local! {
 }
 
 /// The visual window, if the GPU renderer made one.
-fn visual() -> Option<HWND> {
+pub fn visual() -> Option<HWND> {
     let v = VISUAL.with(|v| v.get());
     (v != 0).then(|| HWND(v as *mut core::ffi::c_void))
 }
@@ -323,7 +323,7 @@ pub fn pick_monitor(choice: MonitorChoice) -> MonitorInfo {
     unsafe {
         let point = match choice {
             MonitorChoice::Primary => POINT { x: 0, y: 0 },
-            MonitorChoice::Cursor => {
+            MonitorChoice::Cursor | MonitorChoice::All => {
                 let mut p = POINT::default();
                 let _ = GetCursorPos(&mut p);
                 p
