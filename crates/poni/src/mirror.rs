@@ -46,6 +46,10 @@ struct Mirror {
     monitor: isize,
     hwnd: HWND,
     thumb: isize,
+    /// The window it copies and that window's size when it was taken: a
+    /// copy kept across the source being resized (moving to a screen with
+    /// another scale) turned into a black box, so it is taken again.
+    source: (isize, i32, i32),
     /// Where it was last put (screen pixels) and whether it showed.
     at: RECT,
     shown: bool,
@@ -99,6 +103,20 @@ impl Mirrors {
                     None => continue,
                 },
             };
+            let size = (source.0 as isize, src.right - src.left, src.bottom - src.top);
+            if self.list[i].source != size && visible {
+                let m = &mut self.list[i];
+                unsafe {
+                    let _ = DwmUnregisterThumbnail(m.thumb);
+                    match DwmRegisterThumbnail(m.hwnd, source) {
+                        Ok(t) => m.thumb = t,
+                        Err(e) => crate::pwarn!("every display: no copy of the island ({e})"),
+                    }
+                }
+                m.source = size;
+                // Its place and size are set again below.
+                m.shown = false;
+            }
             let m = &mut self.list[i];
             let at = place(&src, on, t);
             let show = visible && at.right > at.left && !covered(&t.rect);
@@ -164,7 +182,7 @@ fn create(source: HWND, monitor: isize) -> Option<Mirror> {
         .ok()?;
         let _ = SetLayeredWindowAttributes(hwnd, COLORREF(0), 255, LWA_ALPHA);
         match DwmRegisterThumbnail(hwnd, source) {
-            Ok(thumb) => Some(Mirror { monitor, hwnd, thumb, at: RECT::default(), shown: false }),
+            Ok(thumb) => Some(Mirror { monitor, hwnd, thumb, source: (0, 0, 0), at: RECT::default(), shown: false }),
             Err(e) => {
                 crate::pwarn!("every display: no copy of the island ({e})");
                 let _ = DestroyWindow(hwnd);
