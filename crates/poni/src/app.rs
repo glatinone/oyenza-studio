@@ -418,6 +418,10 @@ pub struct App {
     follow_monitor: Option<isize>,
     /// "Every display": the island's live copies on the other screens.
     mirrors: crate::mirror::Mirrors,
+    /// The next meetings from Outlook, and which (start, title) were told
+    /// "in 5 min" (1) and "now" (2).
+    meetings: Vec<services::meetings::Meeting>,
+    meetings_told: Vec<(i64, String, u8)>,
     /// Animation time of the last frame (the vblank it was shown on).
     last_frame_t: f64,
     /// The window: a fixed-size surface the island is drawn in, centred on
@@ -651,7 +655,8 @@ impl App {
         st.unix = clock::unix_now();
         st.accent = theme_accent(st.settings.theme);
         // Notifications only where Windows lets this copy read them (the Store copy).
-        st.notify_can = crate::autostart::packaged();
+        // Without a package the list is looked at instead (services::notifications).
+        st.notify_can = true;
         let mode = Mode::Idle;
         let mut island = Island::new(activities::geom(&mode, &st));
         island.set_floating(pill::on(st.settings.theme).then_some(pill::TOP_GAP));
@@ -699,6 +704,8 @@ impl App {
             frames_running: false,
             follow_monitor: None,
             mirrors: Default::default(),
+            meetings: Vec::new(),
+            meetings_told: Vec::new(),
             last_frame_t: 0.0,
             surface: Surface::default(),
             cx: 0.0,
@@ -1098,6 +1105,10 @@ impl App {
                 }
                 Some(NoticeAction::FocusClaude(name)) => {
                     services::claude::focus_terminal(&name);
+                    opened = true;
+                }
+                Some(NoticeAction::Join(url)) => {
+                    shell::open(&url);
                     opened = true;
                 }
                 None => {}
@@ -1822,6 +1833,7 @@ impl App {
             }
             TIMER_MINUTE => {
                 self.schedule_minute_timer();
+                self.meeting_heads_up();
                 self.close_idle_phone();
             }
             TIMER_TRAY => {
@@ -2581,6 +2593,10 @@ impl App {
                 }
             }
             AppEvent::Claude(ev) => self.on_claude(ev),
+            AppEvent::Meetings(list) => {
+                self.meetings = list;
+                self.meeting_heads_up();
+            }
             AppEvent::Bluetooth { name, connected, battery, audio } => {
                 if self.st.settings.hud_bluetooth {
                     self.st.show_hud(HudKind::Bluetooth { name, connected, battery, audio }, 2.6);
@@ -3438,6 +3454,31 @@ impl App {
         // The refresh rate may have changed too (60 <-> 144 Hz).
         self.clock.set_monitor(m.handle);
         self.sync_every_display();
+        self.request_frame();
+    }
+
+    /// A meeting from Outlook starts in 5 minutes or now: a notice with its
+    /// title; a click joins it (its Teams link), else opens nothing.
+    fn meeting_heads_up(&mut self) {
+        let now = clock::unix_now();
+        self.meetings_told.retain(|(start, ..)| *start > now - 3600);
+        let due = self.meetings.iter().find_map(|m| {
+            let left = m.start - now;
+            let stage = match left {
+                -59..=59 => 2,
+                60..=330 => 1,
+                _ => return None,
+            };
+            let told = self.meetings_told.iter().any(|(s, t, k)| *s == m.start && *t == m.title && *k >= stage);
+            (!told).then(|| (m.clone(), stage, left))
+        });
+        let Some((m, stage, left)) = due else { return };
+        self.meetings_told.retain(|(s, t, _)| !(*s == m.start && *t == m.title));
+        self.meetings_told.push((m.start, m.title.clone(), stage));
+        let when = if stage == 2 { "Starting now".to_string() } else { format!("In {} min", (left + 30) / 60) };
+        let what = if m.join.is_some() { format!("{when} · click to join") } else { when };
+        pinfo!("meetings: heads-up ({})", if stage == 2 { "now" } else { "soon" });
+        self.st.notify(Icon::Calendar, palette::BLUE, m.title.clone(), what, if stage == 2 { 60.0 } else { 20.0 }, m.join.map(NoticeAction::Join));
         self.request_frame();
     }
 

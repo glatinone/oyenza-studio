@@ -142,6 +142,9 @@ pub enum AppEvent {
     /// A Claude Code session finished, waits for an approval or failed.
     #[cfg(windows)]
     Claude(crate::services::claude::ClaudeEvent),
+    /// The next meetings in Outlook's calendar (read every few minutes).
+    #[cfg(windows)]
+    Meetings(Vec<crate::services::meetings::Meeting>),
     /// A full-screen app took over (or left) the island's monitor. `true` is
     /// sent again when another window comes to the foreground while the
     /// monitor stays full-screen, so the island can be raised back on top.

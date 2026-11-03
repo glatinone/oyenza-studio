@@ -143,6 +143,8 @@ pub enum NoticeAction {
     OpenApp(String),
     /// Bring the terminal with this Claude Code session in front.
     FocusClaude(String),
+    /// Join a meeting: its https link (Teams, Meet, Zoom).
+    Join(String),
 }
 
 /// A one-click action shown as a small pill inside a notice (doesn't expand).

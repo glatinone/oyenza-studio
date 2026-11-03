@@ -22,6 +22,7 @@ pub mod imaging;
 pub mod location;
 pub mod lyrics;
 pub mod media;
+pub mod meetings;
 pub mod mic;
 pub mod notes;
 pub mod oyenza;
@@ -56,6 +57,7 @@ pub struct Services {
     _audio: Option<audio::AudioService>,
     _bluetooth: Option<bluetooth::BluetoothService>,
     _claude: Option<claude::ClaudeService>,
+    _meetings: Option<meetings::MeetingsService>,
     fullscreen: Option<fullscreen::FullscreenWatcher>,
     oyenza: Option<oyenza::OyenzaService>,
     pairdrop: Option<pairdrop::PairDropService>,
@@ -90,6 +92,7 @@ impl Services {
         let audio = started("audio", audio::AudioService::start(sink.clone()));
         let bluetooth = started("bluetooth", bluetooth::BluetoothService::start(sink.clone()));
         let claude = started("claude sessions", claude::ClaudeService::start(sink.clone()));
+        let meetings = started("meetings", meetings::MeetingsService::start(sink.clone()));
         let fullscreen = started("fullscreen", fullscreen::FullscreenWatcher::start(helper, sink.clone()));
         // Idle (no calls) until the person signs in to Oyenza from the tray.
         let oyenza = started("oyenza", oyenza::OyenzaService::start(sink.clone(), activity));
@@ -107,7 +110,7 @@ impl Services {
             .map(|a| a.id)
             .collect();
         let addons = started("add-ons", addons::AddonService::start(sink.clone(), on));
-        Self { media, lyrics, _audio: audio, _bluetooth: bluetooth, _claude: claude, fullscreen, oyenza, pairdrop, addons, stocks: std::cell::OnceCell::new(), usage: std::cell::OnceCell::new(), downloader: std::cell::OnceCell::new(), sink: sink.clone() }
+        Self { media, lyrics, _audio: audio, _bluetooth: bluetooth, _claude: claude, _meetings: meetings, fullscreen, oyenza, pairdrop, addons, stocks: std::cell::OnceCell::new(), usage: std::cell::OnceCell::new(), downloader: std::cell::OnceCell::new(), sink: sink.clone() }
     }
 
     pub fn stop(self, _helper: HWND) {

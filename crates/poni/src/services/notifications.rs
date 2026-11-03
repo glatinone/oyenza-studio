@@ -15,6 +15,8 @@
 //! (`poni_core::notifications` decides what the notice says).
 
 use crate::events::{AppEvent, EventSink};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use crate::state::NotifyAccess;
 use poni_core::notifications::Seen;
 use windows::core::Result;
@@ -38,8 +40,14 @@ pub enum NotifyEvent {
 pub struct Listener {
     listener: UserNotificationListener,
     token: Option<EventRegistrationToken>,
+    /// Without a package identity Windows still lets this copy read its
+    /// list, but not hear the event: a thread looks at the list every
+    /// `POLL` instead (set to stop it).
+    poll: Option<Arc<AtomicBool>>,
     sink: EventSink,
 }
+
+const POLL: std::time::Duration = std::time::Duration::from_millis(1500);
 
 impl Listener {
     /// Look at what Windows allows and listen if it lets us; `ask`: the
@@ -47,11 +55,6 @@ impl Listener {
     /// (at a start with it on, the page offers Allow instead).
     /// None, with the reason sent, when this copy can't listen at all.
     pub fn start(sink: EventSink, ask: bool) -> Option<Self> {
-        if !crate::autostart::packaged() {
-            crate::pinfo!("notifications: no package identity, so Windows won't let this copy listen");
-            sink.send(AppEvent::Notify(NotifyEvent::Access(NotifyAccess::NoPackage)));
-            return None;
-        }
         let listener = match UserNotificationListener::Current() {
             Ok(l) => l,
             Err(e) => {
@@ -60,7 +63,7 @@ impl Listener {
                 return None;
             }
         };
-        let mut me = Self { listener, token: None, sink };
+        let mut me = Self { listener, token: None, poll: None, sink };
         match me.access() {
             NotifyAccess::Ask if ask => me.ask(),
             a => me.tell(a),
@@ -133,7 +136,7 @@ impl Listener {
     /// Start hearing new notifications, and list the apps already in
     /// Windows' list for the page (once, on a thread of its own).
     fn listen(&mut self) {
-        if self.token.is_some() {
+        if self.token.is_some() || self.poll.is_some() {
             return;
         }
         let sink = self.sink.clone();
@@ -154,14 +157,22 @@ impl Listener {
                 crate::pinfo!("notifications: listening");
                 self.token = Some(token);
             }
-            Err(e) => {
+            Err(e) if crate::autostart::packaged() => {
                 crate::pwarn!("notifications: couldn't listen: {e}");
                 self.tell(NotifyAccess::Failed);
                 return;
             }
+            // No package identity: no event, so the list is looked at.
+            Err(_) => {
+                if !self.start_poll() {
+                    self.tell(NotifyAccess::Failed);
+                    return;
+                }
+            }
         }
         let (listener, sink) = (self.listener.clone(), self.sink.clone());
         let spawned = std::thread::Builder::new().name("poni-notify-apps".into()).spawn(move || {
+            let listener = UserNotificationListener::Current().unwrap_or(listener);
             // `.get()` waits, so it runs here, never on the UI thread.
             let apps = listener.GetNotificationsAsync(NotificationKinds::Toast).and_then(|op| op.get()).and_then(|list| {
                 let mut apps: Vec<(String, String)> = Vec::new();
@@ -184,8 +195,62 @@ impl Listener {
         }
     }
 
+    /// Look at Windows' list every `POLL` and pass on the notifications that
+    /// weren't in it the last time (the ones there at the start are old).
+    fn start_poll(&mut self) -> bool {
+        let stop = Arc::new(AtomicBool::new(false));
+        let (sink, quit) = (self.sink.clone(), stop.clone());
+        let spawned = std::thread::Builder::new().name("poni-notify-poll".into()).spawn(move || {
+            // The UI thread's listener can't be used here (not agile without
+            // a package): this thread takes its own.
+            let Ok(listener) = UserNotificationListener::Current() else {
+                crate::pwarn!("notifications: no listener on the thread that looks");
+                return;
+            };
+            let ids = |list: &windows::Foundation::Collections::IVectorView<UserNotification>| -> Vec<(u32, UserNotification)> {
+                (0..list.Size().unwrap_or(0)).filter_map(|i| list.GetAt(i).ok()).filter_map(|n| n.Id().ok().map(|id| (id, n))).collect()
+            };
+            let mut seen: std::collections::HashSet<u32> = std::collections::HashSet::new();
+            let mut first = true;
+            while !quit.load(Ordering::Relaxed) {
+                if let Ok(list) = listener.GetNotificationsAsync(NotificationKinds::Toast).and_then(|op| op.get()) {
+                    let now = ids(&list);
+                    for (id, n) in &now {
+                        if !seen.contains(id) && !first {
+                            match read(n) {
+                                Ok(s) => {
+                                    crate::pinfo!("notifications: one from {}", s.app);
+                                    sink.send(AppEvent::Notify(NotifyEvent::Seen(s)))
+                                }
+                                Err(e) => crate::pinfo!("notifications: one skipped: {e}"),
+                            }
+                        }
+                    }
+                    seen = now.into_iter().map(|(id, _)| id).collect();
+                    first = false;
+                }
+                std::thread::sleep(POLL);
+            }
+        });
+        match spawned {
+            Ok(_) => {
+                crate::pinfo!("notifications: listening (looking every {} ms: no package identity)", POLL.as_millis());
+                self.poll = Some(stop);
+                true
+            }
+            Err(e) => {
+                crate::pwarn!("notifications: no thread to look on: {e}");
+                false
+            }
+        }
+    }
+
     /// Stop hearing them (Notifications off, or Windows no longer allows it).
     pub fn stop(&mut self) {
+        if let Some(p) = self.poll.take() {
+            p.store(true, Ordering::Relaxed);
+            crate::pinfo!("notifications: stopped looking");
+        }
         if let Some(token) = self.token.take() {
             if let Err(e) = self.listener.RemoveNotificationChanged(token) {
                 crate::pwarn!("notifications: stopping failed: {e}");
@@ -237,9 +302,6 @@ fn read(n: &UserNotification) -> Result<Seen> {
 /// For the self-test: what this copy can do, without asking Windows anything.
 /// Err when a packaged copy can't reach the listener.
 pub fn describe() -> std::result::Result<String, String> {
-    if !crate::autostart::packaged() {
-        return Ok("installer build: no package identity, so it offers no Notifications".into());
-    }
     let status = UserNotificationListener::Current().and_then(|l| l.GetAccessStatus()).map_err(|e| format!("packaged: listener unavailable: {e}"))?;
     Ok(format!("packaged: Windows says {:?}", access_of(status, false)))
 }
