@@ -175,7 +175,7 @@ impl Updater {
             if in_settings {
                 st.update.said = Some(Said::UpToDate);
             } else {
-                st.notify(Icon::CheckCircle, palette::GREEN, "Oyenza Studio is up to date", format!("{VERSION} is the latest version."), ANSWER_S, None);
+                st.notify(Icon::CheckCircle, palette::GREEN, "Floaty is up to date", format!("{VERSION} is the latest version."), ANSWER_S, None);
             }
             return false;
         };
@@ -561,7 +561,7 @@ mod tests {
         let repo = "https://github.com/lucacadalora/oyenza-studio/releases";
         let this = Release { version: VERSION.into(), date: String::new(), headline: "This".into(), notes: format!("{repo}/tag/v{VERSION}"), windows: None, mac: None };
         assert!(!u.checked(&mut st, Ok(this), now));
-        assert_eq!(st.notice.as_ref().map(|n| n.title.as_str()), Some("Oyenza Studio is up to date"));
+        assert_eq!(st.notice.as_ref().map(|n| n.title.as_str()), Some("Floaty is up to date"));
         assert!(st.notice.as_ref().is_some_and(|n| n.subtitle.contains(VERSION)));
         st.notice = None;
         assert!(u.ask(now));

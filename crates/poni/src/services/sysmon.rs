@@ -724,9 +724,9 @@ impl Sampler {
                         .filter(|p| p.rsplit(['\\', '/']).next().is_some_and(|f| f.eq_ignore_ascii_case(&a.image)))
                         .or_else(|| windows_file(&a.image));
                     if let Some(path) = path {
-                        // Our own file's description is a whole line ("Oyenza Studio - a living notch for Windows").
+                        // Our own process shows by its product name.
                         let own = std::env::current_exe().is_ok_and(|exe| exe.to_string_lossy().eq_ignore_ascii_case(&path));
-                        let name = if own { "Oyenza Studio".to_string() } else { file_description(&path).unwrap_or_else(|| display_name(&a.image)) };
+                        let name = if own { "Floaty".to_string() } else { file_description(&path).unwrap_or_else(|| display_name(&a.image)) };
                         self.names.insert(a.image.clone(), (Some(path), name));
                     }
                 }

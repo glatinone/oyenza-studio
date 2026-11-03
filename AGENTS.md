@@ -4,7 +4,7 @@ Codex, Claude Code, Kimi or any other agent working in this repo: read this befo
 
 ## Keep it light
 
-Oyenza Studio sits on screen all day, so how little it costs is part of the product. The maintainer's rule (24 Oct 2026): keep it very light on CPU, memory and download size, and fast, however many features it gets. Every change follows these:
+Floaty sits on screen all day, so how little it costs is part of the product. The maintainer's rule (24 Oct 2026): keep it very light on CPU, memory and download size, and fast, however many features it gets. Every change follows these:
 
 - **Nothing runs at rest unless the person switched it on or its page is open.** No new thread, timer, poll or network call that keeps going while the island is idle. React to Windows' own notifications where there are some. When something has to repeat, give the interval a reason in a comment and stop it as soon as nothing needs it.
 - **Anything that repeats rests when nobody is there:** while the session is locked, the display is off or battery saver is on. The app already knows all three (`App::locked`, `App::display_off`, `st.power.saver`), and ambient animation already pauses for the first two.
@@ -17,7 +17,7 @@ Oyenza Studio sits on screen all day, so how little it costs is part of the prod
 
 ## Names that stay
 
-The app is Oyenza Studio; it was Oyen Poni until 0.2.0. Only the names people see changed. `poni.exe`, its folders, the uninstall key, the Run value, `Local\Poni.Island`, the Mac bundle id `com.oyenza.poni`, the crates, the `PONI_*` variables and the Oyenza sign-in app id `poni` stay as they are, so older copies update in place and stay signed in. Every release also carries `Oyen-Poni-Setup.exe` and `Oyen-Poni-Mac.dmg` next to the new names, because links to them are out there.
+This fork is Floaty (see `docs/brand-guidelines.md`), built on Oyenza Studio, which was Oyen Poni until 0.2.0. Only the names people see changed, both times: the window titles, tray, Settings and notices say Floaty, while `Oyenza` (the account, oyenza.app, Oyenza Studio Recorder, Studio Pro), the `Downloads\Oyenza Studio` and `Documents\Oyenza Studio` folders, the update feed and the User-Agents keep their names. `poni.exe`, its folders, the uninstall key, the Run value, `Local\Poni.Island`, the Mac bundle id `com.oyenza.poni`, the crates, the `PONI_*` variables and the Oyenza sign-in app id `poni` stay as they are, so older copies update in place and stay signed in. Every release also carries `Oyen-Poni-Setup.exe` and `Oyen-Poni-Mac.dmg` next to the new names, because links to them are out there.
 
 Never create a repository named `lucacadalora/poni`: GitHub forwards that old name to this repository, and the add-on downloads of the 0.1.x versions go through it.
 

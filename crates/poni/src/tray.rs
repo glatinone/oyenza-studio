@@ -34,7 +34,7 @@ impl Tray {
                 hIcon: icon,
                 ..Default::default()
             };
-            let tip: Vec<u16> = format!("Oyenza Studio {}", crate::version::VERSION).encode_utf16().collect();
+            let tip: Vec<u16> = format!("Floaty {}", crate::version::VERSION).encode_utf16().collect();
             nid.szTip[..tip.len()].copy_from_slice(&tip);
             if !Shell_NotifyIconW(NIM_ADD, &nid).as_bool() {
                 return Err(windows::core::Error::from_win32());
@@ -74,7 +74,7 @@ pub enum MenuCmd {
     OpenSettings,
     ReloadSettings,
     OpenDataFolder,
-    /// "About Oyenza Studio 0.2.3 (…)": opens this version's release notes.
+    /// "About Floaty 0.2.3 (…)": opens this version's release notes.
     About,
     /// "Lyrics by LRCLIB": opens lrclib.net.
     LyricsCredit,
@@ -159,7 +159,7 @@ pub fn menu_items(s: &Settings, pinned: bool, oyenza: &OyenzaLink, recorder: boo
         // Which version and build this is, as the Mac menu says it.
         item(&crate::version::about_label(), MenuCmd::About, false),
         MenuItem::Separator,
-        item("Quit Oyenza Studio", MenuCmd::Quit, false),
+        item("Quit Floaty", MenuCmd::Quit, false),
     ];
     // Only once the island was dragged off the middle: the way back, under Keep island open.
     if s.island_x.is_some() {
@@ -308,7 +308,7 @@ mod tests {
             .collect();
         let at = |cmd: MenuCmd| labels.iter().position(|l| l.1 == cmd);
         let about = at(MenuCmd::About).expect("no About line");
-        assert!(labels[about].0.starts_with(&format!("About Oyenza Studio {}", env!("CARGO_PKG_VERSION"))), "{}", labels[about].0);
+        assert!(labels[about].0.starts_with(&format!("About Floaty {}", env!("CARGO_PKG_VERSION"))), "{}", labels[about].0);
         // Right above Quit, with the lyrics credit kept above it.
         assert_eq!(at(MenuCmd::Quit), Some(about + 1));
         assert_eq!(at(MenuCmd::LyricsCredit), Some(about - 1));

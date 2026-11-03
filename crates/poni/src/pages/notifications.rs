@@ -72,7 +72,7 @@ fn access_look(access: NotifyAccess) -> (&'static str, Vec<Button>) {
         NotifyAccess::Ask => ("Windows asks you once before the island can read notifications.", vec![("Allow", NotifyCmd::Ask, true)]),
         NotifyAccess::Asking => ("Answer Windows' question to go on.", vec![]),
         NotifyAccess::Unanswered => ("Windows got no answer. Ask again, or turn it on in Windows' settings.", vec![("Ask again", NotifyCmd::Ask, true), SETTINGS]),
-        NotifyAccess::Denied => ("Turned off for Oyenza Studio in Windows' settings.", vec![SETTINGS]),
+        NotifyAccess::Denied => ("Turned off for Floaty in Windows' settings.", vec![SETTINGS]),
         NotifyAccess::Allowed => ("On. New ones from the apps you pick show on the island.", vec![]),
         NotifyAccess::Failed => ("Windows didn't let the island listen. Switch it off and on in Settings.", vec![]),
     }

@@ -129,7 +129,7 @@ Check "new Start menu shortcut" (Test-Path (Join-Path $programs "Oyenza Studio.l
 Check "old Start menu shortcut removed" (-not (Test-Path (Join-Path $programs "Poni.lnk")))
 if ($Previous) { Check "Oyen Poni shortcut removed" (-not (Test-Path (Join-Path $programs "Oyen Poni.lnk"))) }
 $vi = (Get-Item $exe -ErrorAction SilentlyContinue).VersionInfo
-Check "poni.exe product name" ($vi.ProductName -eq "Oyenza Studio") "$($vi.ProductName)"
+Check "poni.exe product name" ($vi.ProductName -eq "Floaty") "$($vi.ProductName)"
 Check "poni.exe version" ($vi.ProductVersion -eq $Version) "$($vi.ProductVersion)"
 $notices = Join-Path $installDir "THIRD-PARTY-NOTICES.txt"
 Check "license notices installed" (Test-Path $notices) $notices

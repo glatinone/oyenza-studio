@@ -1807,7 +1807,7 @@ pub fn fetch_phone_page(url: &str) -> (bool, String) {
         Ok(out)
     };
     match fetch() {
-        Ok(resp) if resp.starts_with("HTTP/1.1 200") && resp.contains("<title>Oyenza Studio") && resp.trim_end().ends_with("</html>") => {
+        Ok(resp) if resp.starts_with("HTTP/1.1 200") && resp.contains("<title>Floaty") && resp.trim_end().ends_with("</html>") => {
             (true, format!("served the page at {addr} ({} bytes)", resp.len()))
         }
         Ok(resp) => (false, format!("unexpected answer from {addr}: {}", resp.lines().next().unwrap_or(""))),

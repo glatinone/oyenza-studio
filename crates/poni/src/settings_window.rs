@@ -349,9 +349,9 @@ const THEMES: [(Theme, &str, &str); 4] = [
 ];
 /// Start with Windows, or at login on a Mac (its menu bar says so).
 const AUTOSTART: (&str, &str) = if cfg!(target_os = "macos") {
-    ("Start at login", "Opens Oyenza Studio when you log in")
+    ("Start at login", "Opens Floaty when you log in")
 } else {
-    ("Start with Windows", "Opens Oyenza Studio when you sign in")
+    ("Start with Windows", "Opens Floaty when you sign in")
 };
 const WIDTH_STEP: f32 = 20.0;
 const OFFSET_STEP: i32 = 100;
@@ -1424,7 +1424,7 @@ fn fill_row(ui: &mut Ui, row: Rect, c: Color, (first, last): (bool, bool)) {
     ui.c.unclip();
 }
 
-/// The version card: Oyen's tile, "Oyenza Studio" and this version, and
+/// The version card: Oyen's tile, "Floaty" and this version, and
 /// Check now; with a later version out, what it brings and how to get it
 /// (the island's Update sheet does the same).
 fn draw_version(ui: &mut Ui, st: &mut AppState, r: Rect, view: Rect, sf: &Surfaces) {
@@ -1436,7 +1436,7 @@ fn draw_version(ui: &mut Ui, st: &mut AppState, r: Rect, view: Rect, sf: &Surfac
     let clickable = visible(r, view).is_some_and(|v| v.h >= r.h - 0.5);
     let check = clickable.then(|| crate::pages::settings::check_slot(ui, st, head)).flatten();
     let right = check.map_or(head.right(), |b| b.x - 12.0);
-    ui.c.text("Oyenza Studio", Rect::new(tx, cy - 20.0, (right - tx).max(0.0), 22.0), &TextStyle::headline());
+    ui.c.text("Floaty", Rect::new(tx, cy - 20.0, (right - tx).max(0.0), 22.0), &TextStyle::headline());
     ui.c.text(&format!("Version {VERSION}"), Rect::new(tx, cy + 2.0, (right - tx).max(0.0), 17.0), &TextStyle::footnote().color(palette::TEXT_DIM));
     if let Some(b) = check {
         crate::pages::settings::draw_check(ui, st, b);

@@ -63,7 +63,7 @@ const PAIRING: bool = cfg!(windows);
 /// What the phone panel calls this computer.
 const THIS_COMPUTER: &str = if cfg!(windows) { "this PC" } else { "this Mac" };
 /// What to allow if the system asks about Phone drop's incoming connections.
-const ALLOW_HINT: &str = if cfg!(windows) { "If Windows asks, allow Oyenza Studio on private networks." } else { "If macOS asks, allow incoming connections for Oyenza Studio." };
+const ALLOW_HINT: &str = if cfg!(windows) { "If Windows asks, allow Floaty on private networks." } else { "If macOS asks, allow incoming connections for Oyenza Studio." };
 /// How long a phone result ("3 files from iPhone…") stays in the panel.
 pub const PHONE_OUTCOME_S: f64 = 8.0;
 
@@ -580,7 +580,7 @@ fn draw_empty(ui: &mut Ui, st: &AppState, l: &Local, area: Rect, card: Option<(R
 
     let undo_live = g < 0.5 && l.undo.as_ref().is_some_and(|(_, t)| st.now - t < UNDO_SECS);
     let (icon, title, hint) = if g >= 0.5 {
-        (Icon::Plus, DROP_LABEL, "Oyenza Studio keeps a link — the files stay where they are")
+        (Icon::Plus, DROP_LABEL, "Floaty keeps a link — the files stay where they are")
     } else if undo_live {
         (Icon::Tray, "Shelf cleared", "")
     } else {

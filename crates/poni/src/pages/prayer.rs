@@ -94,7 +94,7 @@ const LOCATION_SETTINGS: &str =
     if cfg!(windows) { "ms-settings:privacy-location" } else { "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices" };
 /// The picker's line when location is off, or when the system couldn't say.
 const DENIED_HINT: &str = if cfg!(windows) {
-    "Windows' location is off for Oyenza Studio. Turn it on to find your place, or type it."
+    "Windows' location is off for Floaty. Turn it on to find your place, or type it."
 } else {
     "Location Services is off for Oyenza Studio. Turn it on to find your place, or type it."
 };

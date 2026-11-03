@@ -843,7 +843,7 @@ fn empty(ui: &mut Ui, st: &mut AppState, r: Rect) {
     let ids = ProviderId::ALL.into_iter().filter(|id| *id != ProviderId::Oyenza);
     let found: Vec<ProviderId> = ids.clone().filter(|id| !usage::pace::typed_key_only(&usage::provider(*id).wants(&dirs), false)).collect();
     let keyed: Vec<ProviderId> = ids.filter(|id| usage::provider(*id).takes_key().is_some()).collect();
-    let mut body = format!("Studio looks for {} on this computer.", names(&found, "and"));
+    let mut body = format!("Floaty looks for {} on this computer.", names(&found, "and"));
     if !keyed.is_empty() {
         body.push_str(&format!(" Add a key for {}.", names(&keyed, "or")));
     }

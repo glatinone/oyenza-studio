@@ -187,7 +187,7 @@ pub enum NotifyAccess {
     /// Asked, and Windows came back without an answer (the question was
     /// closed, or never showed): ask again, or turn it on in Windows' settings.
     Unanswered,
-    /// Turned off for Oyenza Studio in Windows' settings.
+    /// Turned off for Floaty in Windows' settings.
     Denied,
     /// Windows lets it read them: new ones show on the island.
     Allowed,

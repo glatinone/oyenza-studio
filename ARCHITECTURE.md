@@ -1,6 +1,6 @@
-# Oyenza Studio architecture
+# Floaty architecture
 
-Oyenza Studio is a "living notch" for Windows 10/11: a black island that hangs from the
+Floaty (built on Oyenza Studio) is a "living notch" for Windows 10/11: a black island that hangs from the
 top-centre of the screen, shows live activities (media, timers, pop-ups) while
 collapsed, and expands on hover into pages (Music + synced lyrics, Today,
 Shelf, Tasks, Focus, AI and Oyenza, plus the add-ons' Health, IELTS, Notes,
