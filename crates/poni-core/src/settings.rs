@@ -45,6 +45,10 @@ pub enum MonitorChoice {
     Primary,
     /// The monitor under the cursor when Poni starts.
     Cursor,
+    /// The monitor of the window you're working in: the island moves to
+    /// another screen when a window there comes to the front or is dragged
+    /// there.
+    Active,
 }
 
 /// Bumped when defaults change in a way existing files should pick up.

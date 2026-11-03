@@ -103,6 +103,8 @@ struct Watch {
     /// Show over games); null while the monitor isn't full screen.
     decided: Cell<HWND>,
     thread_hooks: RefCell<Vec<ThreadHooks>>,
+    /// The monitor of the window in front, as last reported.
+    active_monitor: Cell<isize>,
     busy: Cell<bool>,
     dirty: Cell<bool>,
     /// Step aside: the thin band along the top edge of the island's monitor
@@ -170,6 +172,7 @@ impl FullscreenWatcher {
             culprit: Cell::new(Tracked::NONE),
             decided: Cell::new(HWND::default()),
             thread_hooks: RefCell::new(Vec::new()),
+            active_monitor: Cell::new(0),
             busy: Cell::new(false),
             dirty: Cell::new(false),
             top_band: Cell::new(None),
@@ -306,6 +309,9 @@ unsafe extern "system" fn on_win_event(
         return;
     }
     let Some(w) = current() else { return };
+    if event == EVENT_SYSTEM_FOREGROUND || (event == EVENT_OBJECT_LOCATIONCHANGE && hwnd == w.fg.get().hwnd) {
+        note_active_monitor(&w, hwnd);
+    }
     if event == EVENT_OBJECT_LOCATIONCHANGE {
         let fg = w.fg.get();
         let culprit = w.culprit.get();
@@ -414,6 +420,21 @@ fn update_thread_hooks(w: &Watch) {
     }
     drop(old); // unhooks threads no longer watched
     w.thread_hooks.replace(new);
+}
+
+/// Tell the app when the window in front sits on another monitor than
+/// before. Our own windows (the island, Settings) never move the island.
+/// A drag fires this once per mouse move; it costs one MonitorFromWindow.
+fn note_active_monitor(w: &Watch, hwnd: HWND) {
+    if foreign_thread(w, hwnd).is_none() || unsafe { IsIconic(hwnd).as_bool() } {
+        return;
+    }
+    let hmon = unsafe { MonitorFromWindow(hwnd, MONITOR_DEFAULTTONULL) };
+    if hmon.is_invalid() || hmon.0 as isize == w.active_monitor.get() {
+        return;
+    }
+    w.active_monitor.set(hmon.0 as isize);
+    w.sink.send(AppEvent::ActiveMonitor(hmon.0 as isize));
 }
 
 /// (thread id, process id) of a window owned by another process.

@@ -411,6 +411,9 @@ pub struct App {
     /// The frame clock ran last frame: when it stops, the GPU's spare
     /// memory goes back to Windows (`Gfx::trim`).
     frames_running: bool,
+    /// "Where you work": the monitor to move to once the island is closed
+    /// and at rest (it never jumps away while open or moving).
+    follow_monitor: Option<isize>,
     /// Animation time of the last frame (the vblank it was shown on).
     last_frame_t: f64,
     /// The window: a fixed-size surface the island is drawn in, centred on
@@ -690,6 +693,7 @@ impl App {
             ielts_turn: false,
             glass_moving: false,
             frames_running: false,
+            follow_monitor: None,
             last_frame_t: 0.0,
             surface: Surface::default(),
             cx: 0.0,
@@ -2575,6 +2579,12 @@ impl App {
                 self.sync_game();
             }
             AppEvent::Foreground => self.start_raises(),
+            AppEvent::ActiveMonitor(h) => {
+                if self.st.settings.monitor == MonitorChoice::Active {
+                    self.follow_monitor = Some(h);
+                    self.follow_active_monitor();
+                }
+            }
             AppEvent::TopWindows(places) => {
                 // The self-test puts its own window under the island.
                 if self.selftest.is_none() {
@@ -3379,9 +3389,27 @@ impl App {
         self.maybe_schedule_collapse();
     }
 
+    /// "Where you work": move to the monitor the window in front is on, once
+    /// the island is closed, at rest and not being typed in.
+    fn follow_active_monitor(&mut self) {
+        let Some(h) = self.follow_monitor else { return };
+        if self.expanded || self.text_focus || !self.island.settled() {
+            return;
+        }
+        self.follow_monitor = None;
+        if h == self.monitor.handle {
+            return;
+        }
+        if let Some(m) = window::monitor_info(windows::Win32::Graphics::Gdi::HMONITOR(h as *mut core::ffi::c_void)) {
+            self.monitor = m;
+            self.set_dpi(m.dpi);
+            self.refresh_monitor();
+        }
+    }
+
     fn refresh_monitor(&mut self) {
         let m = match self.st.settings.monitor {
-            MonitorChoice::Cursor => {
+            MonitorChoice::Cursor | MonitorChoice::Active => {
                 window::monitor_info(windows::Win32::Graphics::Gdi::HMONITOR(self.monitor.handle as *mut core::ffi::c_void))
                     .unwrap_or_else(|| window::pick_monitor(MonitorChoice::Primary))
             }
@@ -3957,6 +3985,9 @@ impl App {
             self.gfx.trim();
         }
         self.frames_running = running;
+        if self.follow_monitor.is_some() {
+            self.follow_active_monitor();
+        }
         self.schedule_wake();
         if !self.log_queue.is_empty() {
             let lines = std::mem::take(&mut self.log_queue);

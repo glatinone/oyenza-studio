@@ -146,6 +146,9 @@ pub enum AppEvent {
     /// Another window came to the foreground on a monitor that isn't
     /// full-screen. It may have made itself topmost and now cover the island.
     Foreground,
+    /// The window in front is now on this monitor (HMONITOR): it came to the
+    /// front there or was dragged there. For "Where you work".
+    ActiveMonitor(isize),
     /// Step aside: the app windows at the top edge of the island's monitor
     /// changed (a browser maximized or restored, a window snapped or dragged
     /// to the top). Screen pixels (left, top, right, bottom), each clipped

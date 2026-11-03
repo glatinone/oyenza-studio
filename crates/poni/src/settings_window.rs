@@ -333,7 +333,11 @@ pub enum Act {
 const HOVER: [(u32, &str); 3] = [(120, "Quick"), (220, "Normal"), (450, "Slow")];
 /// How long it stays open after the pointer leaves (ms).
 const CLOSE: [(u32, &str); 3] = [(0, "At once"), (400, "Short"), (1000, "Long")];
-const DISPLAYS: [(MonitorChoice, &str); 2] = [(MonitorChoice::Primary, "Main display"), (MonitorChoice::Cursor, "Under the pointer")];
+const DISPLAYS: [(MonitorChoice, &str); 3] = [
+    (MonitorChoice::Primary, "Main display"),
+    (MonitorChoice::Cursor, "Under the pointer"),
+    (MonitorChoice::Active, "Where you work"),
+];
 const FULLSCREEN: [(bool, &str); 2] = [(true, "Hide"), (false, "Stay on top")];
 const SOUNDS: [(PrayerSound, &str); 3] = [(PrayerSound::Adzan, "Adzan"), (PrayerSound::Tone, "Tone"), (PrayerSound::Silent, "Silent")];
 const THEMES: [(Theme, &str, &str); 4] = [

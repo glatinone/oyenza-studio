@@ -12,8 +12,8 @@ use windows::Win32::Foundation::{HWND, LPARAM, POINT, RECT, WPARAM};
 use windows::Win32::Graphics::Dwm::DwmFlush;
 use windows::Win32::Graphics::Dxgi::{CreateDXGIFactory1, IDXGIFactory1, IDXGIOutput};
 use windows::Win32::Graphics::Gdi::{
-    EnumDisplaySettingsW, GetMonitorInfoW, MonitorFromPoint, DEVMODEW, ENUM_CURRENT_SETTINGS, HMONITOR, MONITORINFO, MONITORINFOEXW,
-    MONITOR_DEFAULTTOPRIMARY,
+    EnumDisplaySettingsW, GetMonitorInfoW, MonitorFromPoint, MonitorFromWindow, DEVMODEW, ENUM_CURRENT_SETTINGS, HMONITOR, MONITORINFO, MONITORINFOEXW,
+    MONITOR_DEFAULTTONULL, MONITOR_DEFAULTTOPRIMARY,
 };
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows::Win32::UI::HiDpi::{GetDpiForMonitor, MDT_EFFECTIVE_DPI};
@@ -327,6 +327,16 @@ pub fn pick_monitor(choice: MonitorChoice) -> MonitorInfo {
                 let mut p = POINT::default();
                 let _ = GetCursorPos(&mut p);
                 p
+            }
+            MonitorChoice::Active => {
+                let fg = GetForegroundWindow();
+                let hmon = MonitorFromWindow(fg, MONITOR_DEFAULTTONULL);
+                if !fg.is_invalid() && !hmon.is_invalid() {
+                    if let Some(m) = monitor_info(hmon) {
+                        return m;
+                    }
+                }
+                POINT { x: 0, y: 0 }
             }
         };
         let hmon = MonitorFromPoint(point, MONITOR_DEFAULTTOPRIMARY);
