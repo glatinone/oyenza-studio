@@ -3412,6 +3412,7 @@ impl App {
             self.monitor = m;
             self.set_dpi(m.dpi);
             self.refresh_monitor();
+            services::fullscreen::recheck(m.handle);
         }
     }
 
@@ -3441,7 +3442,8 @@ impl App {
     fn sync_every_display(&mut self) {
         if self.st.settings.monitor == MonitorChoice::All && self.selftest.is_none() {
             unsafe { SetTimer(self.hwnd, TIMER_MIRROR, 100, None) };
-            self.mirrors.sync(window::visual(), &self.monitor);
+            let hide = self.st.settings.hide_in_fullscreen;
+            self.mirrors.sync(window::visual(), &self.monitor, |r| hide && services::fullscreen::monitor_covered(r));
         } else {
             unsafe {
                 let _ = KillTimer(self.hwnd, TIMER_MIRROR);
@@ -3453,16 +3455,29 @@ impl App {
     /// "Every display", every 100 ms: the island goes to the screen the
     /// pointer moved to (once closed and at rest, like "Where you work"),
     /// and the copies follow wherever it is drawn.
+    /// A screen a full-screen app fills is skipped: no copy there, and the
+    /// island itself moves to another screen rather than hide.
     fn mirror_tick(&mut self) {
+        let hide = self.st.settings.hide_in_fullscreen;
+        let covered = |r: &RECT| hide && services::fullscreen::monitor_covered(r);
+        let screens = crate::mirror::monitors();
         let mut p = POINT::default();
-        if unsafe { GetCursorPos(&mut p) }.is_ok() {
-            let h = unsafe { windows::Win32::Graphics::Gdi::MonitorFromPoint(p, windows::Win32::Graphics::Gdi::MONITOR_DEFAULTTONULL) };
-            if !h.is_invalid() && h.0 as isize != self.monitor.handle {
-                self.follow_monitor = Some(h.0 as isize);
-            }
+        let under = if unsafe { GetCursorPos(&mut p) }.is_ok() {
+            screens.iter().find(|m| p.x >= m.rect.left && p.x < m.rect.right && p.y >= m.rect.top && p.y < m.rect.bottom)
+        } else {
+            None
+        };
+        let want = match under {
+            Some(m) if !covered(&m.rect) => Some(m.handle),
+            // The pointer is over a full-screen app: stay, unless this screen is one too.
+            _ if covered(&self.monitor.rect) => screens.iter().find(|m| !covered(&m.rect)).map(|m| m.handle),
+            _ => None,
+        };
+        if let Some(h) = want.filter(|h| *h != self.monitor.handle) {
+            self.follow_monitor = Some(h);
         }
         self.follow_active_monitor();
-        self.mirrors.sync(window::visual(), &self.monitor);
+        self.mirrors.sync(window::visual(), &self.monitor, covered);
     }
 
     fn mouse_dip(&self, lp: LPARAM) -> Point {

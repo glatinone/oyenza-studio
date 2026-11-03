@@ -75,8 +75,9 @@ impl Mirrors {
 
     /// Show a copy of `source` (the renderer's window, on `on`) on every
     /// other screen, placed where the island hangs on its own screen and
-    /// scaled for that screen's DPI. Hidden while the source is.
-    pub fn sync(&mut self, source: Option<HWND>, on: &MonitorInfo) {
+    /// scaled for that screen's DPI. Hidden while the source is, and on a
+    /// screen where `covered` (a full-screen app fills it).
+    pub fn sync(&mut self, source: Option<HWND>, on: &MonitorInfo, covered: impl Fn(&RECT) -> bool) {
         let Some(source) = source else { return self.clear() };
         let others: Vec<MonitorInfo> = monitors().into_iter().filter(|m| m.handle != on.handle).collect();
         self.list.retain(|m| others.iter().any(|o| o.handle == m.monitor));
@@ -100,7 +101,7 @@ impl Mirrors {
             };
             let m = &mut self.list[i];
             let at = place(&src, on, t);
-            let show = visible && at.right > at.left;
+            let show = visible && at.right > at.left && !covered(&t.rect);
             if show != m.shown || (show && at != m.at) {
                 let size_changed = (at.right - at.left, at.bottom - at.top) != (m.at.right - m.at.left, m.at.bottom - m.at.top);
                 unsafe {
@@ -189,7 +190,7 @@ fn place(src: &RECT, from: &MonitorInfo, to: &MonitorInfo) -> RECT {
 }
 
 /// Every screen, as the island sees it.
-fn monitors() -> Vec<MonitorInfo> {
+pub fn monitors() -> Vec<MonitorInfo> {
     unsafe extern "system" fn each(h: HMONITOR, _: HDC, _: *mut RECT, out: LPARAM) -> BOOL {
         let v = &mut *(out.0 as *mut Vec<MonitorInfo>);
         if let Some(m) = window::monitor_info(h) {

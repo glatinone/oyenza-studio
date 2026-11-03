@@ -613,6 +613,44 @@ fn is_cloaked(hwnd: HWND) -> bool {
     ok.is_ok() && cloaked != 0
 }
 
+/// The island moved to `monitor` ("Where you work", "Every display"): its
+/// full-screen state is looked at again there. UI thread only.
+pub fn recheck(monitor: isize) {
+    if let Some(w) = current() {
+        if let Some(on) = reevaluate(&w, Some(HMONITOR(monitor as *mut core::ffi::c_void))) {
+            w.sink.send(AppEvent::Fullscreen(on));
+        }
+    }
+}
+
+/// Whether a full-screen app fills the monitor `mon` (screen pixels): the
+/// window at its centre spans it and is frameless and not maximized, as in
+/// [`evaluate`], whether or not it is in front. "Every display" leaves that
+/// screen's copy of the island out, and the island itself goes elsewhere.
+pub fn monitor_covered(mon: &RECT) -> bool {
+    use windows::Win32::UI::WindowsAndMessaging::{GetAncestor, WindowFromPoint, GA_ROOT};
+    unsafe {
+        let p = POINT { x: (mon.left + mon.right) / 2, y: (mon.top + mon.bottom) / 2 };
+        let hwnd = GetAncestor(WindowFromPoint(p), GA_ROOT);
+        if hwnd.is_invalid() || !IsWindowVisible(hwnd).as_bool() || IsIconic(hwnd).as_bool() {
+            return false;
+        }
+        let mut r = RECT::default();
+        if GetWindowRect(hwnd, &mut r).is_err() || !contains(&r, mon) {
+            return false;
+        }
+        if hwnd == GetDesktopWindow() || hwnd == GetShellWindow() || is_cloaked(hwnd) {
+            return false;
+        }
+        let mut pid = 0u32;
+        GetWindowThreadProcessId(hwnd, Some(&mut pid));
+        if pid == GetCurrentProcessId() {
+            return false;
+        }
+        !SHELL_CLASSES.contains(&class_name(hwnd).as_str()) && !is_ordinary_window(hwnd)
+    }
+}
+
 /// The process of the window that makes the island's monitor full screen
 /// (the game, under Show over games). UI thread only; None when nothing does.
 pub fn fullscreen_pid() -> Option<u32> {
