@@ -1424,7 +1424,11 @@ fn fill_row(ui: &mut Ui, row: Rect, c: Color, (first, last): (bool, bool)) {
     ui.c.unclip();
 }
 
-/// The version card: Oyen's tile, "Floaty" and this version, and
+/// Shown under the version: Floaty is Oyenza Studio with a few additions.
+const UPSTREAM_CREDIT: &str = "Based on Oyenza Studio by lucacadalora (MIT)";
+
+/// The version card: Oyen's tile, "Floaty", this version and the credit to
+/// Oyenza Studio, and
 /// Check now; with a later version out, what it brings and how to get it
 /// (the island's Update sheet does the same).
 fn draw_version(ui: &mut Ui, st: &mut AppState, r: Rect, view: Rect, sf: &Surfaces) {
@@ -1436,8 +1440,10 @@ fn draw_version(ui: &mut Ui, st: &mut AppState, r: Rect, view: Rect, sf: &Surfac
     let clickable = visible(r, view).is_some_and(|v| v.h >= r.h - 0.5);
     let check = clickable.then(|| crate::pages::settings::check_slot(ui, st, head)).flatten();
     let right = check.map_or(head.right(), |b| b.x - 12.0);
-    ui.c.text("Floaty", Rect::new(tx, cy - 20.0, (right - tx).max(0.0), 22.0), &TextStyle::headline());
-    ui.c.text(&format!("Version {VERSION}"), Rect::new(tx, cy + 2.0, (right - tx).max(0.0), 17.0), &TextStyle::footnote().color(palette::TEXT_DIM));
+    ui.c.text("Floaty", Rect::new(tx, cy - 28.0, (right - tx).max(0.0), 22.0), &TextStyle::headline());
+    ui.c.text(&format!("Version {VERSION}"), Rect::new(tx, cy - 6.0, (right - tx).max(0.0), 17.0), &TextStyle::footnote().color(palette::TEXT_DIM));
+    // Floaty is a fork: the credit stays on the card people open to see what they run.
+    ui.c.text(UPSTREAM_CREDIT, Rect::new(tx, cy + 11.0, (right - tx).max(0.0), 17.0), &TextStyle::footnote().color(palette::TEXT_DIM));
     if let Some(b) = check {
         crate::pages::settings::draw_check(ui, st, b);
     }

@@ -1,6 +1,8 @@
-# Floaty architecture
+# Oyenza Studio architecture (Floaty fork)
 
-Floaty (built on Oyenza Studio) is a "living notch" for Windows 10/11: a black island that hangs from the
+Floaty is a fork of [Oyenza Studio](https://github.com/lucacadalora/oyenza-studio) by lucacadalora (MIT); the architecture below is Oyenza Studio's, with the fork's additions on top (see the README's "What this fork adds").
+
+Oyenza Studio is a "living notch" for Windows 10/11: a black island that hangs from the
 top-centre of the screen, shows live activities (media, timers, pop-ups) while
 collapsed, and expands on hover into pages (Music + synced lyrics, Today,
 Shelf, Tasks, Focus, AI and Oyenza, plus the add-ons' Health, IELTS, Notes,

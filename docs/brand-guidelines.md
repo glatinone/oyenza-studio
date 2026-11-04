@@ -4,6 +4,8 @@ How to name, write about and present Floaty. Use this page for any text the app 
 
 ## Overview and positioning
 
+**Floaty is a fork of [Oyenza Studio](https://github.com/lucacadalora/oyenza-studio) by lucacadalora (MIT), not an independent product.** Almost all of the app is the work of lucacadalora and the Oyenza Studio contributors. Every public text (README, about text, release notes, posts) says so first, credits them, links upstream and recommends the official installer. Only the additions in the README's "What this fork adds" are described as this fork's work, and general improvements are offered back upstream as pull requests. The positioning below is for this personal build and never replaces that credit.
+
 **Floaty is an AI desktop companion.** It lives at the top of your screen as a small floating island, stays out of the way, and opens when you point at it: what's playing, what's next, what's left of your AI plans, files from your phone, a timer, a note.
 
 - **Category:** AI Desktop Companion.

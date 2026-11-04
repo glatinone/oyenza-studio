@@ -12,7 +12,8 @@ BEGIN
     BLOCK "040904B0"
     BEGIN
       VALUE "CompanyName", "Jatevo Labs\0"
-      VALUE "FileDescription", "Floaty\0"
+      VALUE "Comments", "Floaty is a fork of Oyenza Studio by lucacadalora (MIT): github.com/lucacadalora/oyenza-studio\0"
+      VALUE "FileDescription", "Floaty (based on Oyenza Studio)\0"
       VALUE "FileVersion", "0.2.25\0"
       VALUE "InternalName", "poni\0"
       VALUE "LegalCopyright", "Copyright (C) 2026 Jatevo Labs\0"

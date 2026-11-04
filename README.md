@@ -1,43 +1,71 @@
-<p align="center"><img src="docs/brand/oyen-poni-logo.svg" width="96" alt="App icon, still the Oyenza Studio tile: an orange tile with the black island at the top playing music, and a white Oyen below"></p>
+> [!IMPORTANT]
+> **This is a fork.** Floaty is my personal fork of **[Oyenza Studio](https://github.com/lucacadalora/oyenza-studio)** by [@lucacadalora](https://github.com/lucacadalora). The app, its design and almost all of its code are his work and the work of the Oyenza Studio contributors, and all credit for it goes to them. This fork is where I ([@glatinone](https://github.com/glatinone)) build a few extra features on top, with the aim of offering the general ones back to Oyenza Studio as pull requests.
+>
+> **To install, use the official Oyenza Studio:** [upstream Releases](https://github.com/lucacadalora/oyenza-studio/releases/latest). Bugs in the app itself belong in [Oyenza Studio's issues](https://github.com/lucacadalora/oyenza-studio/issues). The install line further down is only an experimental build of this fork with my additions.
 
-<h1 align="center">floaty</h1>
+<p align="center"><img src="docs/brand/oyen-poni-logo.svg" width="96" alt="App icon, the Oyenza Studio tile by lucacadalora: an orange tile with the black island at the top playing music, and a white Oyen below"></p>
 
-<h3 align="center">A little intelligence, everywhere.</h3>
+<h1 align="center">Floaty</h1>
 
-<p align="center">Floaty is your AI companion that lives on your desktop. Like the Dynamic Island on a phone, for your computer. A small island hangs from the top of your screen, shows what's playing, counting down and arriving, and opens into quick pages when you point at it.</p>
+<h3 align="center">A fork of <a href="https://github.com/lucacadalora/oyenza-studio">Oyenza Studio</a>, with a few experimental additions</h3>
+
+<p align="center"><a href="https://github.com/lucacadalora/oyenza-studio">Oyenza Studio</a> by lucacadalora is a Dynamic Island for your computer: a small island hangs from the top of your screen, shows what's playing, counting down and arriving, and opens into quick pages when you point at it. Floaty is that app, renamed for my own build, plus the changes listed under <a href="#what-this-fork-adds">What this fork adds</a>.</p>
 
 <p align="center">
-  <a href="https://github.com/lucacadalora/oyenza-studio/releases/latest/download/Oyenza-Studio-Setup.exe"><img src="https://img.shields.io/badge/Download_for_Windows-0078D4?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmZiI%2BPHBhdGggZD0iTTIgMmg5LjJ2OS4ySDJ6bTEwLjggMEgyMnY5LjJoLTkuMnpNMiAxMi44aDkuMlYyMkgyem0xMC44IDBIMjJWMjJoLTkuMnoiLz48L3N2Zz4=" height="34" alt="Download for Windows"></a>
+  <a href="https://github.com/lucacadalora/oyenza-studio/releases/latest/download/Oyenza-Studio-Setup.exe"><img src="https://img.shields.io/badge/Oyenza_Studio_for_Windows-0078D4?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmZiI%2BPHBhdGggZD0iTTIgMmg5LjJ2OS4ySDJ6bTEwLjggMEgyMnY5LjJoLTkuMnpNMiAxMi44aDkuMlYyMkgyem0xMC44IDBIMjJWMjJoLTkuMnoiLz48L3N2Zz4=" height="34" alt="Download the official Oyenza Studio for Windows"></a>
   &nbsp;
-  <a href="https://github.com/lucacadalora/oyenza-studio/releases/latest/download/Oyenza-Studio-Mac.dmg"><img src="https://img.shields.io/badge/Download_for_Mac-333333?style=for-the-badge&logo=apple&logoColor=white" height="34" alt="Download for Mac"></a>
+  <a href="https://github.com/lucacadalora/oyenza-studio/releases/latest/download/Oyenza-Studio-Mac.dmg"><img src="https://img.shields.io/badge/Oyenza_Studio_for_Mac-333333?style=for-the-badge&logo=apple&logoColor=white" height="34" alt="Download the official Oyenza Studio for Mac"></a>
 </p>
 
+<p align="center"><sub>Both buttons download the official Oyenza Studio from lucacadalora's Releases, not this fork.</sub></p>
+
 <p align="center">
-  <a href="https://studio.oyenza.com/"><b>Website</b></a>
+  <a href="https://github.com/lucacadalora/oyenza-studio"><b>Upstream repo</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://studio.oyenza.com/"><b>Oyenza Studio website</b></a>
+  &nbsp;·&nbsp;
+  <a href="#what-this-fork-adds">What this fork adds</a>
   &nbsp;·&nbsp;
   <a href="#features">Features</a>
   &nbsp;·&nbsp;
   <a href="#install">Install</a>
   &nbsp;·&nbsp;
   <a href="#faq">FAQ</a>
-  &nbsp;·&nbsp;
-  <a href="#guides">Guides</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/lucacadalora/oyenza-studio/releases/latest"><img src="https://img.shields.io/github/v/release/lucacadalora/oyenza-studio?label=latest&color=F0892E" height="20" alt="Latest release"></a>
-  <a href="https://github.com/lucacadalora/oyenza-studio/blob/metrics/README.md"><img src="https://raw.githubusercontent.com/lucacadalora/oyenza-studio/metrics/badge.svg" height="20" alt="Downloads so far"></a>
+  <a href="https://github.com/lucacadalora/oyenza-studio/releases/latest"><img src="https://img.shields.io/github/v/release/lucacadalora/oyenza-studio?label=upstream%20release&color=F0892E" height="20" alt="Latest upstream release"></a>
+  <a href="https://github.com/lucacadalora/oyenza-studio/blob/metrics/README.md"><img src="https://raw.githubusercontent.com/lucacadalora/oyenza-studio/metrics/badge.svg" height="20" alt="Upstream downloads so far"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-555555" height="20" alt="MIT license"></a>
   <img src="https://img.shields.io/badge/built_with-Rust-555555?logo=rust" height="20" alt="Built with Rust">
 </p>
 
-<p align="center"><img src="docs/brand/readme/hero.webp" width="880" alt="The island hanging from the top of the screen, open on the Music page with lyrics in time, and Oyen the cat peeking over a playing island"></p>
+<p align="center"><img src="docs/brand/readme/hero.webp" width="880" alt="Oyenza Studio's island hanging from the top of the screen, open on the Music page with lyrics in time, and Oyen the cat peeking over a playing island"></p>
 
-<p align="center"><sub>Free and open source &nbsp;·&nbsp; Windows 10 and 11 &nbsp;·&nbsp; macOS 14 or later &nbsp;·&nbsp; No account needed</sub></p>
+<p align="center"><sub>Oyenza Studio: free and open source &nbsp;·&nbsp; Windows 10 and 11 &nbsp;·&nbsp; macOS 14 or later &nbsp;·&nbsp; No account needed. The name Oyenza Studio, its icon, Oyen and the images on this page are lucacadalora's (see <a href="#license">License</a>). Oyenza Studio was called Oyen Poni until 0.2.0.</sub></p>
 
-<p align="center"><sub>Floaty is built on <a href="https://github.com/lucacadalora/oyenza-studio">Oyenza Studio</a> by lucacadalora (MIT). Oyenza Studio was called Oyen Poni until 0.2.0. The download buttons above get upstream Oyenza Studio; Floaty installs from this fork's source with one line in PowerShell (see <a href="#install">Install</a>).</sub></p>
+## What this fork adds
+
+Everything outside this list is Oyenza Studio as lucacadalora and its contributors made it. The fork tracks upstream `main` (0.2.25 at the time of writing). These additions are Windows-only, tested on one laptop, and not reviewed by the upstream maintainer.
+
+| Addition | Status |
+|---|---|
+| Building natively on Windows with the GNU toolchain (no Visual Studio, no admin), documented in the README | Offered upstream: [PR #201](https://github.com/lucacadalora/oyenza-studio/pull/201), open |
+| Lighter Glass theme: the screen copy behind the island is taken on the GPU and slows down while nothing changes; idle animations at 30 fps; GPU memory handed back when the island rests | Fork only; planned as a PR upstream |
+| Word-wise editing in every text field: Ctrl+Backspace, Ctrl+Delete, Ctrl+Left/Right | Fork only; planned as a PR upstream |
+| "Where you work" (the island follows the window in front) and "Every display" (the island shows on each screen at once, but not over a full-screen app) | Fork only; planned as a PR upstream |
+| App notifications without a packaged app: the island reads Windows' notification list itself | Fork only; planned as a PR upstream |
+| Heads-up for meetings in classic Outlook, and a Teams call notice with Mute (no Teams API) | Fork only, experimental |
+| Notices when a Claude Code session finishes, needs approval or errors | Fork only; depends on my own terminal tooling |
+| YouTube Music titles, and searching YouTube Music from the Music page to play the pick in Edge | Fork only; playback depends on my own browser tool |
+| One-line install from source (`install.ps1`, `tools/setup-floaty.ps1`) and its CI test | Fork only |
+| The visible name "Floaty" | Fork only, to tell my build apart from the official app; not meant for upstream |
+
+Internal names (the `poni` crates and `poni.exe`, data folders, the update feed) stay as upstream has them, so the fork can keep merging upstream changes.
 
 ## Features
+
+These are Oyenza Studio's features, made by lucacadalora and the Oyenza Studio contributors; Floaty has them because it is Oyenza Studio.
 
 ### Music, word by word
 
@@ -146,15 +174,15 @@ On Windows it draws on your graphics card in step with your display's refresh ra
 
 ### Windows
 
-**Floaty**: paste this one line into PowerShell.
+**The way to install** is the official Oyenza Studio by lucacadalora, ready-made: **[download Oyenza-Studio-Setup.exe](https://github.com/lucacadalora/oyenza-studio/releases/latest/download/Oyenza-Studio-Setup.exe)** and run it. It installs just for you and needs no admin rights. Older versions and a portable zip are on the [Releases](https://github.com/lucacadalora/oyenza-studio/releases) page. Its builds aren't code-signed yet, so Windows SmartScreen may say "Windows protected your PC". Click **More info → Run anyway**.
+
+**Experimental build with my additions (Floaty):** paste this one line into PowerShell.
 
 ```powershell
 irm https://raw.githubusercontent.com/glatinone/oyenza-studio/HEAD/install.ps1 | iex
 ```
 
-It sets up Rust and a small C compiler just for you (no admin rights), builds Floaty from this fork's source, starts it, and starts it again every time you sign in. The first run takes about 10 to 15 minutes while your PC stays usable; after that the same line updates Floaty in a few minutes. When it's done, point at the top of your screen.
-
-**The quickest route** is the original Oyenza Studio by lucacadalora, ready-made: **[download Oyenza-Studio-Setup.exe](https://github.com/lucacadalora/oyenza-studio/releases/latest/download/Oyenza-Studio-Setup.exe)** and run it. It installs just for you and needs no admin rights. Older versions and a portable zip are on the [Releases](https://github.com/lucacadalora/oyenza-studio/releases) page. Its builds aren't code-signed yet, so Windows SmartScreen may say "Windows protected your PC". Click **More info → Run anyway**.
+It sets up Rust and a small C compiler just for you (no admin rights), builds Floaty from this fork's source, starts it, and starts it again every time you sign in. The first run takes about 10 to 15 minutes while your PC stays usable; after that the same line updates Floaty in a few minutes. It is less tested than the official app; if something breaks, the official installer above is the safe way back.
 
 Your data lives in `%APPDATA%\Poni\`, and cache plus log in `%LOCALAPPDATA%\Poni\`. Uninstalling Oyenza Studio removes the app, cache and log, and keeps your data.
 
@@ -168,7 +196,7 @@ macOS 14 or later, Apple silicon or Intel (one app for both): **[download Oyenza
 <summary><b>Is it free?</b></summary>
 <br>
 
-Yes. Floaty is free to download and use, and its code is open source under the [MIT license](LICENSE). Oyenza sign-in is optional.
+Yes. Oyenza Studio, and this fork of it, are free to download and use, and the code is open source under the [MIT license](LICENSE). Oyenza sign-in is optional.
 
 </details>
 
@@ -239,7 +267,7 @@ The gear at the top right of the open island opens **Settings**: your Oyenza acc
 - the idle look: clock, eyes (Oyen in his theme), minimal, hidden until you hover, or a status bar (in Pill; the other themes show the clock)
 - lyrics (and the pronunciation line under Japanese, Korean and Chinese lyrics) and sounds
 - in full-screen apps: hide, or stay on top of borderless games and videos (a game in exclusive full-screen mode still covers it), and show FPS, GPU and CPU over games
-- start with Windows, which version you have (**About Floaty**, with the build's day; it opens that version's release notes), and quit
+- start with Windows, which version you have (**About Oyenza Studio**, or **About Floaty** in this fork's build, with the build's day; it opens that version's release notes), and quit
 - in Settings only: which version you have, with **Check now** ([New versions](#new-versions)); in Advanced settings, everything the menu doesn't have
 
 On a Mac the gear opens the same Settings, and **Advanced settings** the same window, a real Mac window with the title bar buttons over its sidebar; the menu bar item under Oyen's mark has **Advanced settings…** (⌘,) and the quick options.
@@ -275,7 +303,7 @@ The pages and features are the same as in Classic.
 
 Switch on **Show over games** (System › Games, or right-click › In full-screen apps) and, while a game fills the screen in borderless full-screen, the island becomes a small readout: frames per second, the GPU's load and temperature and the CPU's load. It stays for as long as the game is in front; **Alt+Shift+F** hides it until the next game, and pressing it again brings it back. Any window over a borderless game, the island included, makes Windows combine the two before they reach the screen, which costs the game about a frame of delay. If you'd rather not pay it, pick **Readout › Peeks** in System › Games (or right-click › In full-screen apps › Only for a few seconds): the readout then shows for a few seconds when the game comes to the front, when the frame rate drops sharply and whenever you press Alt+Shift+F, then hides, and in between the game's frames go straight to the screen. Turning it on also lets the island show over full-screen apps; picking Hide there turns it off again. Alt+Shift+F belongs to Oyenza Studio only while a game is in front.
 
-The frame rate is counted the way Intel's PresentMon and Xbox Game Bar count it: Windows logs every frame a game hands to the screen, and Floaty reads that log for the game in front. Nothing is loaded into the game, so there is nothing for anti-cheat to see. DirectX 9 to 12 games are counted from their own Present calls; Vulkan and OpenGL games from the graphics kernel's log of their frames. The GPU and CPU numbers come from the same readers as the System page. Nothing runs while no game is in front or while the readout is off.
+The frame rate is counted the way Intel's PresentMon and Xbox Game Bar count it: Windows logs every frame a game hands to the screen, and Oyenza Studio reads that log for the game in front. Nothing is loaded into the game, so there is nothing for anti-cheat to see. DirectX 9 to 12 games are counted from their own Present calls; Vulkan and OpenGL games from the graphics kernel's log of their frames. The GPU and CPU numbers come from the same readers as the System page. Nothing runs while no game is in front or while the readout is off.
 
 Windows lets only admins and the **Performance Log Users** group read that log. The first time, System › Games asks for a one-time OK: an admin prompt adds your Windows account to that group (Xbox Game Bar's FPS counter asks for the same), and Windows applies it the next time you sign in. Until then the FPS slot shows a dash and the rest works. To undo it, remove your account from Performance Log Users in Computer Management, or run `net localgroup "Performance Log Users" <your user name> /delete` as an admin. A game in exclusive full-screen mode still covers the island, as it covers every window.
 
@@ -289,7 +317,7 @@ The Mac pictures come from the Mac app itself (`poni --render <dir> --notch`, ru
 
 ### Apple Music lyrics
 
-Lyrics come from LRCLIB by default. With an Apple Music subscription, Floaty can show Apple Music's own synced lyrics instead: the ones the Apple Music app shows. This works whichever app is playing. LRCLIB stays the backup for songs Apple has no synced lyrics for.
+Lyrics come from LRCLIB by default. With an Apple Music subscription, Oyenza Studio can show Apple Music's own synced lyrics instead: the ones the Apple Music app shows. This works whichever app is playing. LRCLIB stays the backup for songs Apple has no synced lyrics for.
 
 It needs your Apple Music token, copied once from the web player:
 
@@ -297,16 +325,16 @@ It needs your Apple Music token, copied once from the web player:
 2. Press F12, open **Application** → **Cookies** → `https://music.apple.com`, and copy the value of `media-user-token`.
 3. Right-click the island (or the tray icon) → **Apple Music lyrics** → **Use token from clipboard**.
 
-Floaty checks the token with Apple and says whether it worked. It stores the token encrypted for your Windows account (`%LOCALAPPDATA%\Poni\apple-music-token.bin`) and clears it from the clipboard. If Windows clipboard history (Win+V) is on, delete it there too. A token lasts for months; when Apple stops accepting it, Oyenza Studio says so and you copy a fresh one. **Remove token** in the same menu turns this off.
+Oyenza Studio checks the token with Apple and says whether it worked. It stores the token encrypted for your Windows account (`%LOCALAPPDATA%\Poni\apple-music-token.bin`) and clears it from the clipboard. If Windows clipboard history (Win+V) is on, delete it there too. A token lasts for months; when Apple stops accepting it, Oyenza Studio says so and you copy a fresh one. **Remove token** in the same menu turns this off.
 
-With a token saved, Floaty sends each song's title and artist to Apple to find its lyrics. It uses the Apple Music web player's own API, which Apple doesn't publish for other apps, so it can stop working when Apple changes its site. LRCLIB keeps working either way.
+With a token saved, Oyenza Studio sends each song's title and artist to Apple to find its lyrics. It uses the Apple Music web player's own API, which Apple doesn't publish for other apps, so it can stop working when Apple changes its site. LRCLIB keeps working either way.
 
 ### Phone drop
 
 Send photos and files from your phone to the Shelf, or save Shelf files on your phone, over your own Wi-Fi. Nothing to install on the phone, and it works with iPhones and Android phones alike.
 
 1. Open the Shelf and click **Phone** (on an empty shelf, the **Phone drop** tile). A QR code opens under the shelf.
-2. Scan it with the phone's camera. The phone opens a small page that Floaty serves from your PC.
+2. Scan it with the phone's camera. The phone opens a small page that Oyenza Studio serves from your PC.
 3. Pick photos or files on the phone and tap **Send**. The island asks first: **Accept** or **Decline**. Accepted files go to `Downloads\Oyenza Studio` and onto the Shelf.
 4. The page also lists the files on the Shelf. Tap **Save** to keep one on the phone.
 
@@ -314,15 +342,15 @@ Send photos and files from your phone to the Shelf, or save Shelf files on your 
 |---|---|
 | ![Phone drop open: the QR code waits for a phone](docs/screenshots/page-shelf-phone.png) | ![An iPhone asks to send three files](docs/screenshots/page-shelf-phone-ask.png) |
 
-The phone and the PC need the same Wi-Fi; guest networks often keep devices apart. The first time, Windows asks whether Floaty may use the network: allow it on private networks. If Windows treats your Wi-Fi as a public network, set it to private (Settings > Network & internet > Wi-Fi), or the phone can't reach the PC.
+The phone and the PC need the same Wi-Fi; guest networks often keep devices apart. The first time, Windows asks whether Oyenza Studio may use the network: allow it on private networks. If Windows treats your Wi-Fi as a public network, set it to private (Settings > Network & internet > Wi-Fi), or the phone can't reach the PC.
 
-Each session gets a new secret link that only the QR code carries. It stops working when you click **Done**, and after 10 minutes without a phone. Floaty reads nothing from an upload before you accept, keeps a transfer only when every file arrived, and never sends anything through the internet. Files travel over your Wi-Fi without extra encryption on top of the Wi-Fi's own, so use Phone drop on networks you trust rather than public hotspots.
+Each session gets a new secret link that only the QR code carries. It stops working when you click **Done**, and after 10 minutes without a phone. Oyenza Studio reads nothing from an upload before you accept, keeps a transfer only when every file arrived, and never sends anything through the internet. Files travel over your Wi-Fi without extra encryption on top of the Wi-Fi's own, so use Phone drop on networks you trust rather than public hotspots.
 
 This isn't AirDrop. An iPhone only AirDrops over Apple's own Wi-Fi link (AWDL), which Windows Wi-Fi drivers can't run, so Phone drop uses the phone's browser instead.
 
 #### Paired phones: send from any network
 
-Pair a phone once, and it finds this PC from any network, whenever Floaty runs: the same Wi-Fi, another Wi-Fi or mobile data.
+Pair a phone once, and it finds this PC from any network, whenever Oyenza Studio runs: the same Wi-Fi, another Wi-Fi or mobile data.
 
 1. In the phone panel, click **Pair a phone** and scan the new code. The phone opens `drop.oyenza.com` and says it's paired.
 2. Keep that page: on an iPhone, tap Share › **Add to Home Screen**; on Android, install it (Chrome or Samsung Internet). Android then lists **Oyenza Studio** in the share sheet.
@@ -338,7 +366,7 @@ The phone and PC meet through a small server (`drop.oyenza.com`, code in [`serve
 
 ### Oyenza (optional)
 
-If you keep your money in [Oyenza](https://oyenza.app), the island can show it. Signing in is optional and works like a TV: no password is typed into Floaty.
+If you keep your money in [Oyenza](https://oyenza.app), the island can show it. Signing in is optional and works like a TV: no password is typed into Oyenza Studio.
 
 1. Open the island, press the gear at the top right, and choose **Sign in with Oyenza** (the Oyenza tab has the same button; right-click the island or the tray icon → **Oyenza** → **Sign in to Oyenza…** works too; on a Mac, the menu bar under Oyen's mark). The island shows an 8-letter code.
 2. Open oyenza.app/connect on your phone or this computer (**Open oyenza.app** fills the code in), check the computer's name, and choose **Connect**.
@@ -356,7 +384,7 @@ This PC gets a key of its own that can do only these things: it reads the last 7
 
 ### New versions
 
-Floaty looks for a new version a couple of minutes after it starts and then every hour, by reading one small signed file from studio.oyenza.com. It doesn't look while your PC is locked, the screen is off or battery saver is on. **Check for updates…** in the menu looks right away and says on the island what it found; **Check now** in Settings does the same and answers there. When there is a new version, the island says **Update available** with the version and keeps saying it until you click it or **Hide** it. The new version is already downloaded by then, and checked: click the notice for the Update sheet, then **Install now** (Oyenza Studio closes, updates and opens again in a few seconds, your settings and data stay) or **Install on next start**. On a Mac this works where Oyenza Studio can replace itself, as in Applications; opened straight from the DMG, its sheet downloads the DMG instead. Until you update, the right-click menu starts with **Update to Oyenza Studio x…** and Settings has a last row with **Update**. After you update, the island says **Updated to x** once, with **What's new**. Versions 0.2.5 and older don't look: update them by hand once. How the file is made and signed: [docs/updates.md](docs/updates.md).
+Oyenza Studio looks for a new version a couple of minutes after it starts and then every hour, by reading one small signed file from studio.oyenza.com. It doesn't look while your PC is locked, the screen is off or battery saver is on. **Check for updates…** in the menu looks right away and says on the island what it found; **Check now** in Settings does the same and answers there. When there is a new version, the island says **Update available** with the version and keeps saying it until you click it or **Hide** it. The new version is already downloaded by then, and checked: click the notice for the Update sheet, then **Install now** (Oyenza Studio closes, updates and opens again in a few seconds, your settings and data stay) or **Install on next start**. On a Mac this works where Oyenza Studio can replace itself, as in Applications; opened straight from the DMG, its sheet downloads the DMG instead. Until you update, the right-click menu starts with **Update to Oyenza Studio x…** and Settings has a last row with **Update**. After you update, the island says **Updated to x** once, with **What's new**. Versions 0.2.5 and older don't look: update them by hand once. How the file is made and signed: [docs/updates.md](docs/updates.md).
 
 ### Notifications
 
@@ -389,7 +417,7 @@ The **+** at the end of the tabs lists features that stay off until you switch t
 
 ## Build
 
-Floaty is a Cargo workspace (crate and file names keep the upstream `poni` names):
+Oyenza Studio, and so this fork, is a Cargo workspace (crate and file names keep the upstream `poni` names):
 
 | Crate | What |
 |---|---|
@@ -448,11 +476,12 @@ The README's feature pictures are drawn from those same screenshots by `tools/ma
 
 ## Status
 
-Early, but in daily use on Windows 11. The Mac app is newer: it runs on GitHub's macOS runners on every change, and a real MacBook's notch, music apps and drag and drop are where it most needs reports. Most rough edges are in places a test machine can't fully exercise: specific media players, Bluetooth devices, and multi-monitor setups. Issues and pull requests are welcome. Please attach `%LOCALAPPDATA%\Poni\poni.log` (on a Mac, `~/Library/Logs/Poni/poni.log`) when something misbehaves.
+Early, but in daily use on Windows 11. The Mac app is newer: it runs on GitHub's macOS runners on every change, and a real MacBook's notch, music apps and drag and drop are where it most needs reports. Most rough edges are in places a test machine can't fully exercise: specific media players, Bluetooth devices, and multi-monitor setups. Problems with the app itself go to [Oyenza Studio's issues](https://github.com/lucacadalora/oyenza-studio/issues); issues on this fork are only for the [additions](#what-this-fork-adds). Please attach `%LOCALAPPDATA%\Poni\poni.log` (on a Mac, `~/Library/Logs/Poni/poni.log`) when something misbehaves.
 
 ## Credits
 
-- Synced lyrics come from [LRCLIB](https://lrclib.net), a free and open lyrics database. Floaty fetches them only while a song plays and caches them on your PC.
+- **Floaty is [Oyenza Studio](https://github.com/lucacadalora/oyenza-studio) by [lucacadalora](https://github.com/lucacadalora) and the [Oyenza Studio contributors](https://github.com/lucacadalora/oyenza-studio/graphs/contributors)**, used under the MIT license. This fork only adds the changes listed in [What this fork adds](#what-this-fork-adds).
+- Synced lyrics come from [LRCLIB](https://lrclib.net), a free and open lyrics database. Oyenza Studio fetches them only while a song plays and caches them on your PC.
 - With your token, lyrics can also come from [Apple Music](https://music.apple.com) (see [Apple Music lyrics](#apple-music-lyrics)).
 - Phone drop follows the design of [Windfall](https://github.com/UvejsGj/Windfall)'s phone page (MIT). QR codes come from [qrcodegen](https://github.com/nayuki/QR-Code-generator) (MIT).
 - Romaji under Japanese lyrics comes from Windows' own reading analyzer or, on PCs without Windows' Japanese data, from [mecab-ipadic](https://taku910.github.io/mecab/) read with [vibrato](https://github.com/daac-tools/vibrato) (MIT/Apache-2.0).
@@ -463,4 +492,4 @@ Early, but in daily use on Windows 11. The Mac app is newer: it runs on GitHub's
 
 ## License
 
-The code is [MIT](LICENSE). The Oyenza Studio name, its logo and the Oyen character (the files in `docs/brand`, `installer/art` and the app icon) are not covered by the MIT license, so please don't reuse them in other projects. The Japanese reading dictionary (`crates/poni-core/data/ja-readings.dic.zst`, the Japanese readings add-on) is derived from mecab-ipadic and keeps its own license, which the add-on's `NOTICE.txt` carries. [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt), which ships with every download, holds that license and those of the Unicode data and the Rust crates Oyenza Studio is built from.
+The code is [MIT](LICENSE), copyright Jatevo Labs (Oyenza Studio, by lucacadalora); the LICENSE file is upstream's, unchanged. My additions in this fork are under the same MIT license. The Oyenza Studio name, its logo and the Oyen character (the files in `docs/brand`, `installer/art` and the app icon) are not covered by the MIT license, so please don't reuse them in other projects. The Japanese reading dictionary (`crates/poni-core/data/ja-readings.dic.zst`, the Japanese readings add-on) is derived from mecab-ipadic and keeps its own license, which the add-on's `NOTICE.txt` carries. [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt), which ships with every download, holds that license and those of the Unicode data and the Rust crates Oyenza Studio is built from.

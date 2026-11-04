@@ -34,7 +34,7 @@ impl Tray {
                 hIcon: icon,
                 ..Default::default()
             };
-            let tip: Vec<u16> = format!("Floaty {}", crate::version::VERSION).encode_utf16().collect();
+            let tip: Vec<u16> = format!("Floaty {} · based on Oyenza Studio by lucacadalora (MIT)", crate::version::VERSION).encode_utf16().collect();
             nid.szTip[..tip.len()].copy_from_slice(&tip);
             if !Shell_NotifyIconW(NIM_ADD, &nid).as_bool() {
                 return Err(windows::core::Error::from_win32());
