@@ -1,0 +1,127 @@
+# The friend install, end to end, on a Windows runner made to look like a fresh PC:
+# no Rust, no MinGW gcc, no git. It runs the exact one-liner from the README in
+# Windows PowerShell 5.1, so it fetches the scripts from raw HEAD of the default
+# branch (pushed changes only; the run first waits until raw serves this commit).
+name: Install test (clean PC)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [perf/lighter-glass-word-keys]
+    paths:
+      - install.ps1
+      - tools/*floaty*
+      - .github/workflows/install-test.yml
+
+concurrency:
+  group: install-test
+  cancel-in-progress: true
+
+jobs:
+  install:
+    runs-on: windows-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: expected
+
+      - name: Wait until raw.githubusercontent.com serves this commit
+        shell: powershell
+        run: |
+          $ProgressPreference = 'SilentlyContinue'
+          $files = 'install.ps1', 'tools/bootstrap-floaty.ps1'
+          for ($i = 0; $i -lt 40; $i++) {
+            $stale = @($files | Where-Object {
+              $want = (Get-Content -Raw "expected/$_") -replace "`r", ''
+              $got = try { ((Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/glatinone/oyenza-studio/HEAD/$($_)?t=$i").Content) -replace "`r", '' } catch { '' }
+              $want -ne $got
+            })
+            if ($stale.Count -eq 0) { Write-Host 'raw HEAD is up to date'; exit 0 }
+            Write-Host "raw HEAD still stale: $($stale -join ', ')"; Start-Sleep 15
+          }
+          Write-Host '::warning::raw HEAD never matched this commit; testing what it serves'
+
+      - name: Make the runner a clean PC (hide Rust, MinGW gcc, git)
+        shell: powershell
+        run: |
+          # Rust lives in the default per-user folders on a real PC: move the
+          # runner's copies away and drop its CARGO_HOME / RUSTUP_HOME.
+          foreach ($d in "$HOME\.cargo", "$HOME\.rustup", 'C:\mingw64', 'C:\msys64', 'C:\Strawberry', "$env:ProgramFiles\Git") {
+            if (Test-Path $d) {
+              try { Rename-Item $d "$(Split-Path -Leaf $d).hidden" -ErrorAction Stop; Write-Host "hid $d" }
+              catch { Write-Host "::warning::could not hide $d ($($_.Exception.Message))" }
+            }
+          }
+          foreach ($v in 'CARGO_HOME', 'RUSTUP_HOME', 'RUSTUP_TOOLCHAIN') {
+            [Environment]::SetEnvironmentVariable($v, $null, 'Machine')
+            [Environment]::SetEnvironmentVariable($v, $null, 'User')
+          }
+          # Every PATH dir that still has one of these tools goes, from the
+          # registry too (bootstrap re-reads it after installing git).
+          $tools = 'cargo.exe', 'rustup.exe', 'rustc.exe', 'gcc.exe', 'x86_64-w64-mingw32-gcc.exe', 'git.exe'
+          $hit = { param($p) $p -match '(?i)cargo|rustup|mingw|msys|strawberry|\\git\\' -or @($tools | Where-Object { Test-Path (Join-Path $p $_) }).Count -gt 0 }
+          foreach ($scope in 'Machine', 'User') {
+            $old = [Environment]::GetEnvironmentVariable('Path', $scope)
+            if (-not $old) { continue }
+            $new = ($old -split ';' | Where-Object { $_ -and -not (& $hit $_) }) -join ';'
+            [Environment]::SetEnvironmentVariable('Path', $new, $scope)
+          }
+          $clean = ($env:PATH -split ';' | Where-Object { $_ -and -not (& $hit $_) }) -join ';'
+          "CLEAN_PATH=$clean" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+          $env:PATH = $clean
+          foreach ($t in 'cargo', 'rustup', 'rustc', 'gcc', 'x86_64-w64-mingw32-gcc', 'git') {
+            $c = Get-Command $t -ErrorAction SilentlyContinue
+            if ($c) { Write-Host "::warning::$t still visible at $($c.Source)" } else { Write-Host "${t}: gone" }
+          }
+          Write-Host "winget: $([bool](Get-Command winget -ErrorAction SilentlyContinue))"
+
+      - name: Install with the one-liner (Windows PowerShell 5.1)
+        shell: powershell
+        env:
+          FLOATY_NO_START: '1'
+          FLOATY_NO_AUTOSTART: '1'
+        run: |
+          # Windows PowerShell turns a native stderr line into an error under 'Stop'.
+          $ErrorActionPreference = 'Continue'
+          $env:PATH = $env:CLEAN_PATH
+          Remove-Item Env:CARGO_HOME, Env:RUSTUP_HOME, Env:RUSTUP_TOOLCHAIN -ErrorAction SilentlyContinue
+          $log = Join-Path $env:RUNNER_TEMP 'floaty-setup.log'
+          $t0 = Get-Date
+          & "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -Command 'irm https://raw.githubusercontent.com/glatinone/oyenza-studio/HEAD/install.ps1 | iex' 2>&1 |
+            ForEach-Object { $l = "[{0:mm\:ss}] {1}" -f ((Get-Date) - $t0), $_; Write-Host $l; $l } | Out-File -Encoding utf8 $log
+          $mins = [math]::Round(((Get-Date) - $t0).TotalMinutes, 1)
+          "Install wall time: $mins min" | Tee-Object -Append -FilePath $log
+          "INSTALL_MINUTES=$mins" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+          # The next step decides: poni.exe is there or not.
+          exit 0
+
+      - name: Check poni.exe
+        shell: powershell
+        run: |
+          $exe = Join-Path $env:LOCALAPPDATA 'Programs\OyenzaStudio\poni.exe'
+          if (-not (Test-Path $exe)) { Write-Host "::error::no $exe"; exit 1 }
+          $mb = [math]::Round((Get-Item $exe).Length / 1MB, 2)
+          Write-Host "poni.exe: $((Get-Item $exe).Length) bytes ($mb MB)"
+          Get-ChildItem (Split-Path $exe) | Format-Table Name, Length -AutoSize | Out-String | Write-Host
+          "### Floaty install test`n- install wall time: $env:INSTALL_MINUTES min`n- poni.exe: $mb MB" | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+
+      - name: Start Floaty and check it stays up
+        shell: powershell
+        continue-on-error: true
+        run: |
+          Start-Process wscript.exe -ArgumentList "`"$env:LOCALAPPDATA\Programs\OyenzaStudio\start.vbs`""
+          Start-Sleep 12
+          $p = Get-Process poni -ErrorAction SilentlyContinue
+          if (-not $p) { Write-Host '::error::poni.exe is not running 12 s after start'; exit 1 }
+          Write-Host "poni.exe up: pid $($p.Id), $([math]::Round($p.WorkingSet64 / 1MB)) MB"
+          "- started: up after 12 s ($([math]::Round($p.WorkingSet64 / 1MB)) MB)" | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+          $p | Stop-Process -Force
+
+      - name: Upload setup log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: floaty-setup-log
+          path: ${{ runner.temp }}/floaty-setup.log
+          if-no-files-found: warn
