@@ -3,8 +3,7 @@
 <rect width="820" height="730" rx="16" fill="#FFF1DE"/>
 <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Helvetica, Arial, sans-serif">
 <path d="M100.5,68.0L100.5,448.0" stroke="#D8BF9C" stroke-width="1"/>
-<path d="M73.0,634.5L736.6,634.5" stroke="#EAD7BC" stroke-width="1"/>
-<path d="M775.5,634.5L792.0,634.5" stroke="#EAD7BC" stroke-width="1"/>
+<path d="M73.0,634.5L792.0,634.5" stroke="#EAD7BC" stroke-width="1"/>
 <path d="M73.0,584.5L792.0,584.5" stroke="#EAD7BC" stroke-width="1"/>
 <path d="M73.0,534.5L792.0,534.5" stroke="#EAD7BC" stroke-width="1"/>
 <path d="M73.0,684.5L792.0,684.5" stroke="#D8BF9C" stroke-width="1"/>
@@ -20,16 +19,16 @@
 <path d="M101.0,363.0H114.7A4.0,4.0 0 0 1 118.7,367.0V377.0A4.0,4.0 0 0 1 114.7,381.0H101.0Z" fill="#D9661C"/>
 <path d="M101.0,395.0H177.0A4.0,4.0 0 0 1 181.0,399.0V409.0A4.0,4.0 0 0 1 177.0,413.0H101.0Z" fill="#D9661C"/>
 <path d="M101.0,427.0H737.4A4.0,4.0 0 0 1 741.4,431.0V441.0A4.0,4.0 0 0 1 737.4,445.0H101.0Z" fill="#D9661C"/>
-<path d="M97.0,684.0V680.5A4.0,4.0 0 0 1 101.0,676.5H117.0A4.0,4.0 0 0 1 121.0,680.5V684.0Z" fill="#D9661C"/>
-<path d="M168.9,684.0V649.6A4.0,4.0 0 0 1 172.9,645.6H188.9A4.0,4.0 0 0 1 192.9,649.6V684.0Z" fill="#D9661C"/>
-<path d="M240.8,684.0V607.3A4.0,4.0 0 0 1 244.8,603.3H260.8A4.0,4.0 0 0 1 264.8,607.3V684.0Z" fill="#D9661C"/>
-<path d="M312.7,684.0V604.5A4.0,4.0 0 0 1 316.7,600.5H332.7A4.0,4.0 0 0 1 336.7,604.5V684.0Z" fill="#D9661C"/>
-<path d="M384.6,684.0V612.9A4.0,4.0 0 0 1 388.6,608.9H404.6A4.0,4.0 0 0 1 408.6,612.9V684.0Z" fill="#D9661C"/>
-<path d="M456.5,684.0V583.0A4.0,4.0 0 0 1 460.5,579.0H476.5A4.0,4.0 0 0 1 480.5,583.0V684.0Z" fill="#D9661C"/>
-<path d="M528.4,684.0V630.1A4.0,4.0 0 0 1 532.4,626.1H548.4A4.0,4.0 0 0 1 552.4,630.1V684.0Z" fill="#D9661C"/>
-<path d="M600.2,684.0V655.5A4.0,4.0 0 0 1 604.2,651.5H620.2A4.0,4.0 0 0 1 624.2,655.5V684.0Z" fill="#D9661C"/>
-<path d="M672.2,684.0V639.0A4.0,4.0 0 0 1 676.2,635.0H692.2A4.0,4.0 0 0 1 696.2,639.0V684.0Z" fill="#D9661C"/>
-<path d="M744.1,684.0V652.4A4.0,4.0 0 0 1 748.1,648.4H764.1A4.0,4.0 0 0 1 768.1,652.4V684.0Z" fill="#D9661C"/>
+<path d="M91.0,684.0V680.5A4.0,4.0 0 0 1 95.0,676.5H111.0A4.0,4.0 0 0 1 115.0,680.5V684.0Z" fill="#D9661C"/>
+<path d="M150.9,684.0V649.6A4.0,4.0 0 0 1 154.9,645.6H170.9A4.0,4.0 0 0 1 174.9,649.6V684.0Z" fill="#D9661C"/>
+<path d="M210.8,684.0V607.3A4.0,4.0 0 0 1 214.8,603.3H230.8A4.0,4.0 0 0 1 234.8,607.3V684.0Z" fill="#D9661C"/>
+<path d="M270.7,684.0V604.5A4.0,4.0 0 0 1 274.7,600.5H290.7A4.0,4.0 0 0 1 294.7,604.5V684.0Z" fill="#D9661C"/>
+<path d="M330.6,684.0V612.9A4.0,4.0 0 0 1 334.6,608.9H350.6A4.0,4.0 0 0 1 354.6,612.9V684.0Z" fill="#D9661C"/>
+<path d="M390.5,684.0V583.0A4.0,4.0 0 0 1 394.5,579.0H410.5A4.0,4.0 0 0 1 414.5,583.0V684.0Z" fill="#D9661C"/>
+<path d="M450.5,684.0V630.1A4.0,4.0 0 0 1 454.5,626.1H470.5A4.0,4.0 0 0 1 474.5,630.1V684.0Z" fill="#D9661C"/>
+<path d="M510.4,684.0V655.5A4.0,4.0 0 0 1 514.4,651.5H530.4A4.0,4.0 0 0 1 534.4,655.5V684.0Z" fill="#D9661C"/>
+<path d="M570.3,684.0V639.0A4.0,4.0 0 0 1 574.3,635.0H590.3A4.0,4.0 0 0 1 594.3,639.0V684.0Z" fill="#D9661C"/>
+<path d="M630.2,684.0V652.4A4.0,4.0 0 0 1 634.2,648.4H650.2A4.0,4.0 0 0 1 654.2,652.4V684.0Z" fill="#D9661C"/>
 <text x="28.0" y="44.0" font-size="16" fill="#2B1B10" font-weight="600">Downloads per release</text>
 <text x="91.0" y="88.0" font-size="14" fill="#6B5442" text-anchor="end" style="font-variant-numeric: tabular-nums">0.2.24</text>
 <text x="137.0" y="88.5" font-size="14" fill="#2B1B10" font-weight="600">222</text>
@@ -56,13 +55,13 @@
 <text x="91.0" y="440.0" font-size="14" fill="#6B5442" text-anchor="end" style="font-variant-numeric: tabular-nums">36 older</text>
 <text x="749.4" y="440.5" font-size="14" fill="#2B1B10" font-weight="600">5,069</text>
 <text x="28.0" y="496.0" font-size="16" fill="#2B1B10" font-weight="600">Downloads per day</text>
-<text x="756.1" y="641.4" font-size="13" fill="#2B1B10" font-weight="600" text-anchor="middle">713</text>
-<text x="468.5" y="572.0" font-size="13" fill="#2B1B10" font-weight="600" text-anchor="middle">2,101</text>
+<text x="762.0" y="677.0" font-size="13" fill="#2B1B10" font-weight="600" text-anchor="middle">0</text>
+<text x="402.5" y="572.0" font-size="13" fill="#2B1B10" font-weight="600" text-anchor="middle">2,101</text>
 <text x="63.0" y="688.5" font-size="12" fill="#7A6450" text-anchor="end" style="font-variant-numeric: tabular-nums">0</text>
 <text x="63.0" y="638.5" font-size="12" fill="#7A6450" text-anchor="end" style="font-variant-numeric: tabular-nums">1,000</text>
 <text x="63.0" y="588.5" font-size="12" fill="#7A6450" text-anchor="end" style="font-variant-numeric: tabular-nums">2,000</text>
 <text x="63.0" y="538.5" font-size="12" fill="#7A6450" text-anchor="end" style="font-variant-numeric: tabular-nums">3,000</text>
-<text x="756.1" y="704.0" font-size="12" fill="#7A6450" text-anchor="middle">2 Nov</text>
-<text x="252.8" y="704.0" font-size="12" fill="#7A6450" text-anchor="middle">26 Oct</text>
+<text x="762.0" y="704.0" font-size="12" fill="#7A6450" text-anchor="middle">4 Nov</text>
+<text x="342.6" y="704.0" font-size="12" fill="#7A6450" text-anchor="middle">28 Oct</text>
 </g>
 </svg>

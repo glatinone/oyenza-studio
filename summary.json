@@ -1,22 +1,19 @@
 {
-  "repo": "lucacadalora/oyenza-studio",
-  "checked_at": "2026-11-02T08:23:14Z",
+  "repo": "glatinone/oyenza-studio",
+  "checked_at": "2026-11-04T08:01:38Z",
   "since": "2026-10-24",
   "downloads": 11306,
   "github_count": 11531,
   "ci_count": 605,
-  "last_7_days": 8775,
-  "latest": {
-    "release": "v0.2.24",
-    "downloads": 222
-  },
-  "stars": 126,
-  "forks": 25,
+  "last_7_days": 5602,
+  "latest": null,
+  "stars": 0,
+  "forks": 0,
   "watchers": 0,
   "releases": [
     {
       "release": "v0.2.24",
-      "published": "2026-11-02T07:38:17Z",
+      "published": null,
       "downloads": 222,
       "github_count": 222,
       "ci_count": 0,
@@ -32,7 +29,7 @@
     },
     {
       "release": "v0.2.23",
-      "published": "2026-11-01T10:55:53Z",
+      "published": null,
       "downloads": 1078,
       "github_count": 1078,
       "ci_count": 0,
@@ -48,7 +45,7 @@
     },
     {
       "release": "v0.2.22",
-      "published": "2026-10-31T14:28:35Z",
+      "published": null,
       "downloads": 799,
       "github_count": 799,
       "ci_count": 0,
@@ -64,7 +61,7 @@
     },
     {
       "release": "v0.2.21",
-      "published": "2026-10-30T00:24:27Z",
+      "published": null,
       "downloads": 1207,
       "github_count": 1207,
       "ci_count": 0,
@@ -80,7 +77,7 @@
     },
     {
       "release": "v0.2.20",
-      "published": "2026-10-29T16:17:33Z",
+      "published": null,
       "downloads": 409,
       "github_count": 409,
       "ci_count": 0,
@@ -96,7 +93,7 @@
     },
     {
       "release": "v0.2.19",
-      "published": "2026-10-29T11:11:51Z",
+      "published": null,
       "downloads": 534,
       "github_count": 534,
       "ci_count": 0,
@@ -112,7 +109,7 @@
     },
     {
       "release": "v0.2.18",
-      "published": "2026-10-29T09:59:24Z",
+      "published": null,
       "downloads": 269,
       "github_count": 269,
       "ci_count": 0,
@@ -128,7 +125,7 @@
     },
     {
       "release": "v0.2.17",
-      "published": "2026-10-29T08:04:55Z",
+      "published": null,
       "downloads": 379,
       "github_count": 379,
       "ci_count": 0,
@@ -144,7 +141,7 @@
     },
     {
       "release": "v0.2.16",
-      "published": "2026-10-28T22:32:22Z",
+      "published": null,
       "downloads": 567,
       "github_count": 187,
       "ci_count": 0,
@@ -160,7 +157,7 @@
     },
     {
       "release": "v0.2.15",
-      "published": "2026-10-28T20:01:14Z",
+      "published": null,
       "downloads": 140,
       "github_count": 140,
       "ci_count": 0,
@@ -176,7 +173,7 @@
     },
     {
       "release": "v0.2.14",
-      "published": "2026-10-28T09:07:51Z",
+      "published": null,
       "downloads": 633,
       "github_count": 633,
       "ci_count": 0,
@@ -192,7 +189,7 @@
     },
     {
       "release": "v0.2.13",
-      "published": "2026-10-27T10:34:20Z",
+      "published": null,
       "downloads": 1125,
       "github_count": 1125,
       "ci_count": 0,
@@ -208,7 +205,7 @@
     },
     {
       "release": "v0.2.12",
-      "published": "2026-10-27T10:14:21Z",
+      "published": null,
       "downloads": 27,
       "github_count": 27,
       "ci_count": 0,
@@ -224,7 +221,7 @@
     },
     {
       "release": "v0.2.11",
-      "published": "2026-10-26T23:36:07Z",
+      "published": null,
       "downloads": 995,
       "github_count": 995,
       "ci_count": 0,
@@ -240,7 +237,7 @@
     },
     {
       "release": "v0.2.10",
-      "published": "2026-10-26T20:56:31Z",
+      "published": null,
       "downloads": 99,
       "github_count": 99,
       "ci_count": 0,
@@ -256,7 +253,7 @@
     },
     {
       "release": "v0.2.9",
-      "published": "2026-10-26T18:39:45Z",
+      "published": null,
       "downloads": 65,
       "github_count": 65,
       "ci_count": 0,
@@ -272,7 +269,7 @@
     },
     {
       "release": "v0.2.8",
-      "published": "2026-10-26T11:38:10Z",
+      "published": null,
       "downloads": 453,
       "github_count": 453,
       "ci_count": 0,
@@ -288,7 +285,7 @@
     },
     {
       "release": "v0.2.7",
-      "published": "2026-10-26T10:58:17Z",
+      "published": null,
       "downloads": 68,
       "github_count": 68,
       "ci_count": 0,
@@ -304,7 +301,7 @@
     },
     {
       "release": "v0.2.6",
-      "published": "2026-10-25T20:24:48Z",
+      "published": null,
       "downloads": 934,
       "github_count": 934,
       "ci_count": 0,
@@ -320,7 +317,7 @@
     },
     {
       "release": "v0.2.5",
-      "published": "2026-10-25T19:48:19Z",
+      "published": null,
       "downloads": 29,
       "github_count": 29,
       "ci_count": 0,
@@ -336,7 +333,7 @@
     },
     {
       "release": "v0.2.4",
-      "published": "2026-10-25T16:51:00Z",
+      "published": null,
       "downloads": 181,
       "github_count": 181,
       "ci_count": 0,
@@ -352,7 +349,7 @@
     },
     {
       "release": "v0.2.3",
-      "published": "2026-10-25T15:26:45Z",
+      "published": null,
       "downloads": 100,
       "github_count": 100,
       "ci_count": 0,
@@ -368,7 +365,7 @@
     },
     {
       "release": "v0.2.2",
-      "published": "2026-10-25T09:48:50Z",
+      "published": null,
       "downloads": 107,
       "github_count": 107,
       "ci_count": 0,
@@ -384,7 +381,7 @@
     },
     {
       "release": "v0.2.1",
-      "published": "2026-10-25T09:24:31Z",
+      "published": null,
       "downloads": 16,
       "github_count": 16,
       "ci_count": 0,
@@ -400,7 +397,7 @@
     },
     {
       "release": "v0.2.0",
-      "published": "2026-10-25T05:55:37Z",
+      "published": null,
       "downloads": 66,
       "github_count": 66,
       "ci_count": 0,
@@ -416,7 +413,7 @@
     },
     {
       "release": "v0.1.21",
-      "published": "2026-10-25T05:33:17Z",
+      "published": null,
       "downloads": 17,
       "github_count": 17,
       "ci_count": 0,
@@ -430,7 +427,7 @@
     },
     {
       "release": "v0.1.20",
-      "published": "2026-10-24T22:47:06Z",
+      "published": null,
       "downloads": 31,
       "github_count": 31,
       "ci_count": 0,
@@ -444,7 +441,7 @@
     },
     {
       "release": "v0.1.19",
-      "published": "2026-10-24T21:48:26Z",
+      "published": null,
       "downloads": 11,
       "github_count": 11,
       "ci_count": 0,
@@ -458,7 +455,7 @@
     },
     {
       "release": "v0.1.18",
-      "published": "2026-10-24T19:33:42Z",
+      "published": null,
       "downloads": 11,
       "github_count": 11,
       "ci_count": 0,
@@ -472,7 +469,7 @@
     },
     {
       "release": "v0.1.17",
-      "published": "2026-10-24T18:27:12Z",
+      "published": null,
       "downloads": 411,
       "github_count": 411,
       "ci_count": 0,
@@ -486,7 +483,7 @@
     },
     {
       "release": "v0.1.16",
-      "published": "2026-10-24T17:43:05Z",
+      "published": null,
       "downloads": 8,
       "github_count": 8,
       "ci_count": 0,
@@ -500,7 +497,7 @@
     },
     {
       "release": "v0.1.15",
-      "published": "2026-10-24T16:55:39Z",
+      "published": null,
       "downloads": 8,
       "github_count": 8,
       "ci_count": 0,
@@ -514,7 +511,7 @@
     },
     {
       "release": "v0.1.14",
-      "published": "2026-10-24T14:44:44Z",
+      "published": null,
       "downloads": 25,
       "github_count": 25,
       "ci_count": 0,
@@ -526,7 +523,7 @@
     },
     {
       "release": "v0.1.13",
-      "published": "2026-10-24T13:54:59Z",
+      "published": null,
       "downloads": 11,
       "github_count": 11,
       "ci_count": 0,
@@ -538,7 +535,7 @@
     },
     {
       "release": "v0.1.12",
-      "published": "2026-10-24T12:36:39Z",
+      "published": null,
       "downloads": 18,
       "github_count": 18,
       "ci_count": 0,
@@ -550,7 +547,7 @@
     },
     {
       "release": "v0.1.11",
-      "published": "2026-10-24T12:03:02Z",
+      "published": null,
       "downloads": 9,
       "github_count": 9,
       "ci_count": 0,
@@ -562,7 +559,7 @@
     },
     {
       "release": "v0.1.10",
-      "published": "2026-10-24T11:56:24Z",
+      "published": null,
       "downloads": 5,
       "github_count": 5,
       "ci_count": 0,
@@ -574,7 +571,7 @@
     },
     {
       "release": "v0.1.9",
-      "published": "2026-10-24T10:12:33Z",
+      "published": null,
       "downloads": 15,
       "github_count": 15,
       "ci_count": 0,
@@ -586,7 +583,7 @@
     },
     {
       "release": "v0.1.8",
-      "published": "2026-10-24T09:57:37Z",
+      "published": null,
       "downloads": 9,
       "github_count": 9,
       "ci_count": 0,
@@ -598,7 +595,7 @@
     },
     {
       "release": "v0.1.7",
-      "published": "2026-10-24T09:50:27Z",
+      "published": null,
       "downloads": 6,
       "github_count": 6,
       "ci_count": 0,
@@ -610,7 +607,7 @@
     },
     {
       "release": "v0.1.6",
-      "published": "2026-10-24T08:58:17Z",
+      "published": null,
       "downloads": 11,
       "github_count": 11,
       "ci_count": 0,
@@ -622,7 +619,7 @@
     },
     {
       "release": "v0.1.5",
-      "published": "2026-10-24T08:21:12Z",
+      "published": null,
       "downloads": 13,
       "github_count": 13,
       "ci_count": 0,
@@ -634,7 +631,7 @@
     },
     {
       "release": "v0.1.4",
-      "published": "2026-10-24T08:06:10Z",
+      "published": null,
       "downloads": 6,
       "github_count": 6,
       "ci_count": 0,
@@ -646,7 +643,7 @@
     },
     {
       "release": "v0.1.3",
-      "published": "2026-10-24T07:40:43Z",
+      "published": null,
       "downloads": 7,
       "github_count": 7,
       "ci_count": 0,
@@ -658,7 +655,7 @@
     },
     {
       "release": "v0.1.2",
-      "published": "2026-10-24T07:26:28Z",
+      "published": null,
       "downloads": 7,
       "github_count": 7,
       "ci_count": 0,
@@ -670,7 +667,7 @@
     },
     {
       "release": "v0.1.1",
-      "published": "2026-10-24T05:54:33Z",
+      "published": null,
       "downloads": 160,
       "github_count": 765,
       "ci_count": 605,
@@ -681,7 +678,7 @@
     },
     {
       "release": "v0.1.0",
-      "published": "2026-10-24T00:06:58Z",
+      "published": null,
       "downloads": 5,
       "github_count": 5,
       "ci_count": 0,
@@ -731,6 +728,14 @@
     {
       "date": "2026-11-02",
       "downloads": 713
+    },
+    {
+      "date": "2026-11-03",
+      "downloads": 0
+    },
+    {
+      "date": "2026-11-04",
+      "downloads": 0
     }
   ]
 }
