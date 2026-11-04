@@ -35,7 +35,7 @@
 
 <p align="center"><sub>Free and open source &nbsp;·&nbsp; Windows 10 and 11 &nbsp;·&nbsp; macOS 14 or later &nbsp;·&nbsp; No account needed</sub></p>
 
-<p align="center"><sub>Floaty is built on <a href="https://github.com/lucacadalora/oyenza-studio">Oyenza Studio</a> by lucacadalora (MIT). Oyenza Studio was called Oyen Poni until 0.2.0. The download buttons above get upstream Oyenza Studio; Floaty is built from this fork's source (see <a href="#build">Build</a>).</sub></p>
+<p align="center"><sub>Floaty is built on <a href="https://github.com/lucacadalora/oyenza-studio">Oyenza Studio</a> by lucacadalora (MIT). Oyenza Studio was called Oyen Poni until 0.2.0. The download buttons above get upstream Oyenza Studio; Floaty installs from this fork's source with one line in PowerShell (see <a href="#install">Install</a>).</sub></p>
 
 ## Features
 
@@ -146,11 +146,17 @@ On Windows it draws on your graphics card in step with your display's refresh ra
 
 ### Windows
 
-**[Download Oyenza-Studio-Setup.exe](https://github.com/lucacadalora/oyenza-studio/releases/latest/download/Oyenza-Studio-Setup.exe)** and run it. It installs just for you and needs no admin rights. Older versions and a portable zip are on the [Releases](https://github.com/lucacadalora/oyenza-studio/releases) page.
+**Floaty**: paste this one line into PowerShell.
 
-Builds aren't code-signed yet, so Windows SmartScreen may say "Windows protected your PC". Click **More info → Run anyway**.
+```powershell
+irm https://raw.githubusercontent.com/glatinone/oyenza-studio/HEAD/install.ps1 | iex
+```
 
-Your data lives in `%APPDATA%\Poni\`, and cache plus log in `%LOCALAPPDATA%\Poni\`. Uninstalling removes the app, cache and log, and keeps your data.
+It sets up Rust and a small C compiler just for you (no admin rights), builds Floaty from this fork's source, starts it, and starts it again every time you sign in. The first run takes about 10 to 15 minutes while your PC stays usable; after that the same line updates Floaty in a few minutes. When it's done, point at the top of your screen.
+
+**The quickest route** is the original Oyenza Studio by lucacadalora, ready-made: **[download Oyenza-Studio-Setup.exe](https://github.com/lucacadalora/oyenza-studio/releases/latest/download/Oyenza-Studio-Setup.exe)** and run it. It installs just for you and needs no admin rights. Older versions and a portable zip are on the [Releases](https://github.com/lucacadalora/oyenza-studio/releases) page. Its builds aren't code-signed yet, so Windows SmartScreen may say "Windows protected your PC". Click **More info → Run anyway**.
+
+Your data lives in `%APPDATA%\Poni\`, and cache plus log in `%LOCALAPPDATA%\Poni\`. Uninstalling Oyenza Studio removes the app, cache and log, and keeps your data.
 
 ### Mac
 
