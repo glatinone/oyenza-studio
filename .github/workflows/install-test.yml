@@ -14,13 +14,21 @@ on:
       - .github/workflows/install-test.yml
 
 concurrency:
-  group: install-test
+  group: install-test-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   install:
+    name: install (${{ matrix.pc }})
     runs-on: windows-latest
     timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        # winget: the usual Windows 10/11 PC. no-winget: a PC without it (LTSC,
+        # stripped images), so git falls back to the source zip and gcc to
+        # WinLibs' GitHub release.
+        pc: [winget, no-winget]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -60,6 +68,7 @@ jobs:
           # Every PATH dir that still has one of these tools goes, from the
           # registry too (bootstrap re-reads it after installing git).
           $tools = 'cargo.exe', 'rustup.exe', 'rustc.exe', 'gcc.exe', 'x86_64-w64-mingw32-gcc.exe', 'git.exe'
+          if ('${{ matrix.pc }}' -eq 'no-winget') { $tools += 'winget.exe' }
           $hit = { param($p) $p -match '(?i)cargo|rustup|mingw|msys|strawberry|\\git\\' -or @($tools | Where-Object { Test-Path (Join-Path $p $_) }).Count -gt 0 }
           foreach ($scope in 'Machine', 'User') {
             $old = [Environment]::GetEnvironmentVariable('Path', $scope)
@@ -74,7 +83,9 @@ jobs:
             $c = Get-Command $t -ErrorAction SilentlyContinue
             if ($c) { Write-Host "::warning::$t still visible at $($c.Source)" } else { Write-Host "${t}: gone" }
           }
-          Write-Host "winget: $([bool](Get-Command winget -ErrorAction SilentlyContinue))"
+          $w = Get-Command winget -ErrorAction SilentlyContinue
+          Write-Host "winget: $(if ($w) { $w.Source } else { 'none' })"
+          if ('${{ matrix.pc }}' -eq 'no-winget' -and $w) { Write-Host "::error::winget still visible"; exit 1 }
 
       - name: Install with the one-liner (Windows PowerShell 5.1)
         shell: powershell
@@ -104,7 +115,7 @@ jobs:
           $mb = [math]::Round((Get-Item $exe).Length / 1MB, 2)
           Write-Host "poni.exe: $((Get-Item $exe).Length) bytes ($mb MB)"
           Get-ChildItem (Split-Path $exe) | Format-Table Name, Length -AutoSize | Out-String | Write-Host
-          "### Floaty install test`n- install wall time: $env:INSTALL_MINUTES min`n- poni.exe: $mb MB" | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+          "### Floaty install test (${{ matrix.pc }})`n- install wall time: $env:INSTALL_MINUTES min`n- poni.exe: $mb MB" | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
 
       - name: Start Floaty and check it stays up
         shell: powershell
@@ -122,6 +133,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: floaty-setup-log
+          name: floaty-setup-log-${{ matrix.pc }}
           path: ${{ runner.temp }}/floaty-setup.log
           if-no-files-found: warn
