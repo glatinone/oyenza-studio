@@ -4477,6 +4477,15 @@ fn browser_chrome(dark: bool, x: f32, y: f32) -> [u8; 3] {
 /// white heading. Dark: a dark browser playing a sunset over a skyline. Text
 /// and edges cross the island's rim so the lens has something to bend.
 fn backdrop_dip(dark: bool, x: f32, y: f32) -> [u8; 3] {
+    // PONI_SELFTEST_GLASS_PLAIN=1: a plain dusk wallpaper under the glass (marketing shots).
+    static PLAIN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    if *PLAIN.get_or_init(|| std::env::var_os("PONI_SELFTEST_GLASS_PLAIN").is_some()) {
+        let u = ((x + 360.0) / 720.0).clamp(0.0, 1.0);
+        let v = (y / 110.0).clamp(0.0, 1.0);
+        let left = mix8([0x5D, 0x6B, 0x84], [0x8E, 0x8C, 0x96], v);
+        let right = mix8([0x83, 0x7C, 0x98], [0xB9, 0xA5, 0x96], v);
+        return mix8(left, right, u);
+    }
     if y < 85.0 {
         return browser_chrome(dark, x, y);
     }

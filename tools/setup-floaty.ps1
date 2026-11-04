@@ -113,9 +113,12 @@ if (-not $SkipBuild) {
     Push-Location $repo
     try {
         $p = Start-Process cargo -ArgumentList 'build', '-p', 'poni', '--release', '--locked', '--target', $target -NoNewWindow -PassThru
+        # Touching .Handle keeps the process handle, so ExitCode is still there after
+        # it exits (Windows PowerShell 5.1 otherwise reports an empty exit code).
+        $null = $p.Handle
         try { $p.PriorityClass = 'BelowNormal' } catch {}
         $p.WaitForExit()
-        if ($p.ExitCode -ne 0) { throw "cargo build failed ($($p.ExitCode))" }
+        if ($p.ExitCode -ne 0) { throw "cargo build failed (exit $($p.ExitCode))" }
     } finally { Pop-Location }
 }
 $built = Join-Path $repo "target\$target\release\poni.exe"
