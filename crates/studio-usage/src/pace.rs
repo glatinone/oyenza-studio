@@ -1179,7 +1179,7 @@ mod tests {
     fn services_as_bits_and_the_notices_line() {
         assert!(ProviderId::ALL.len() <= 32);
         assert_eq!(bit(ProviderId::Codex), 1);
-        assert_eq!(bit(ProviderId::Oyenza), 1 << 11);
+        assert_eq!(bit(ProviderId::Oyenza), 1 << 12);
         assert_eq!(bits(&["claude".into(), "nope".into(), "openrouter".into(), "claude".into()]), bit(ProviderId::Claude) | bit(ProviderId::OpenRouter));
         assert_eq!(bits(&[]), 0);
         let all: u32 = ProviderId::ALL.iter().map(|id| bit(*id)).sum();

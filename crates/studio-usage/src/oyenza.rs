@@ -770,7 +770,7 @@ mod tests {
         assert_eq!(connect_failure_text(OFFLINE).0, "Can't reach Oyenza Inference");
         assert_eq!(connect_failure_text(BUSY).0, "Too many tries");
         assert_eq!(connect_failure_text("whatever").0, "Couldn't connect");
-        assert_eq!(nudge(ProviderId::Claude, Some("14:20")).as_deref(), Some("Out of Claude Code until 14:20? Keep going on Oyenza Inference."));
+        assert_eq!(nudge(ProviderId::Claude, Some("14:20")).as_deref(), Some("Out of Claude Loka until 14:20? Keep going on Oyenza Inference."));
         assert_eq!(nudge(ProviderId::Codex, Some(" ")).as_deref(), Some("Out of Codex? Keep going on Oyenza Inference."));
         assert_eq!(nudge(ProviderId::Oyenza, None), None);
         let mut words = vec![CONNECT, CONNECT_LINE, STARTING, CONNECT_AGAIN, DISCONNECT, NUDGE, refused_text(Refusal::Key).0, refused_text(Refusal::Key).1];

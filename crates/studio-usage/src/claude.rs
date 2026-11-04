@@ -129,6 +129,50 @@ impl Provider for Claude {
     }
 }
 
+/// Claude Code's default folder (`~/.claude`) as a second card while
+/// `CLAUDE_CONFIG_DIR` points [`Claude`] at another one: two accounts on one
+/// PC, each read the way Claude Code reads it. Without the variable it is
+/// the same folder as [`Claude`], so it stays away.
+pub struct ClaudeOrigin;
+
+impl ClaudeOrigin {
+    fn origin(dirs: &Dirs) -> Option<Dirs> {
+        dirs.var("CLAUDE_CONFIG_DIR")?;
+        let mut d = dirs.clone();
+        d.env.retain(|(k, _)| k != "CLAUDE_CONFIG_DIR");
+        Some(d)
+    }
+}
+
+impl Provider for ClaudeOrigin {
+    fn id(&self) -> ProviderId {
+        ProviderId::ClaudeOrigin
+    }
+
+    fn env(&self) -> &'static [&'static str] {
+        &["CLAUDE_CONFIG_DIR"]
+    }
+
+    fn wants(&self, dirs: &Dirs) -> Vec<Want> {
+        Self::origin(dirs).map_or_else(Vec::new, |d| Claude.wants(&d))
+    }
+
+    fn next(&self, cx: &Ctx, replies: &[Result<Reply, NetFail>]) -> Step {
+        let Some(d) = Self::origin(cx.dirs) else { return Step::Done(Err(Trouble::NotFound)) };
+        match Claude.next(&Ctx { dirs: &d, got: cx.got, now: cx.now, reach: cx.reach }, replies) {
+            Step::Done(Ok(mut s)) => {
+                s.provider = ProviderId::ClaudeOrigin;
+                Step::Done(Ok(s))
+            }
+            step => step,
+        }
+    }
+
+    fn min_gap_s(&self) -> u64 {
+        Claude.min_gap_s()
+    }
+}
+
 /// The keychain item Claude Code 2.x keeps its sign-in in: with
 /// `CLAUDE_CONFIG_DIR` set, a dash and the first 8 hex digits of that
 /// folder's SHA-256 follow the name, so each folder signs in on its own.
@@ -455,6 +499,23 @@ mod tests {
         let (asked, out) = run(Os::Windows, &windows(file(CREDENTIALS_JSON)), Reach::Online, &[reply(200, USAGE)]);
         assert_eq!(asked.len(), 1);
         assert_eq!(out.unwrap().windows.len(), 5);
+    }
+
+    #[test]
+    fn origin_reads_the_default_folder_while_claude_config_dir_moves_the_main_card() {
+        let plain = Dirs::sample(Os::Windows);
+        assert_eq!(ClaudeOrigin.wants(&plain), []);
+        let cx = Ctx { dirs: &plain, got: &[], now: NOW, reach: Reach::Online };
+        assert!(matches!(ClaudeOrigin.next(&cx, &[]), Step::Done(Err(Trouble::NotFound))));
+        let mut moved = Dirs::sample(Os::Windows);
+        moved.env.push(("CLAUDE_CONFIG_DIR".into(), r"C:\Users\u\.claude-loka".into()));
+        assert_eq!(ClaudeOrigin.wants(&moved), Claude.wants(&plain));
+        assert_eq!(Claude.wants(&moved)[CREDENTIALS], Want::file(PathBuf::from(r"C:\Users\u\.claude-loka\.credentials.json")));
+        let got = windows(file(CREDENTIALS_JSON));
+        let cx = Ctx { dirs: &moved, got: &got, now: NOW, reach: Reach::Online };
+        let Step::Fetch(_) = ClaudeOrigin.next(&cx, &[]) else { panic!("asks online") };
+        let Step::Done(Ok(s)) = ClaudeOrigin.next(&cx, &[reply(200, USAGE)]) else { panic!("reads the answer") };
+        assert_eq!((s.provider, s.windows.len()), (ProviderId::ClaudeOrigin, 5));
     }
 
     #[test]

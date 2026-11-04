@@ -141,7 +141,7 @@ pub enum Icon {
 pub fn service(id: ProviderId) -> Icon {
     match id {
         ProviderId::Codex => Icon::OpenAi,
-        ProviderId::Claude => Icon::Claude,
+        ProviderId::Claude | ProviderId::ClaudeOrigin => Icon::Claude,
         ProviderId::OpenCode => Icon::OpenCode,
         ProviderId::Gemini => Icon::Gemini,
         ProviderId::Antigravity => Icon::Antigravity,

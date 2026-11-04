@@ -477,7 +477,7 @@ fn words(id: ProviderId, t: &Trouble) -> Words {
 fn usage_page(id: ProviderId) -> &'static str {
     match id {
         ProviderId::Codex => "https://chatgpt.com/codex/cloud/settings/analytics#usage",
-        ProviderId::Claude => "https://claude.ai/settings/usage",
+        ProviderId::Claude | ProviderId::ClaudeOrigin => "https://claude.ai/settings/usage",
         ProviderId::OpenCode => "https://opencode.ai/auth",
         ProviderId::Gemini => "https://gemini.google.com",
         ProviderId::Antigravity => "https://antigravity.google",
