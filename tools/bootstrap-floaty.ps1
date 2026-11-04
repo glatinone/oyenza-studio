@@ -33,6 +33,7 @@ param(
     [switch]$NoWhatsApp
 )
 $ErrorActionPreference = 'Stop'
+trap { Write-Host "Floaty setup stopped: $($_.Exception.Message)" -ForegroundColor Red; exit 1 }
 $ProgressPreference = 'SilentlyContinue'
 try { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072 } catch {}
 $branch = 'perf/lighter-glass-word-keys'
@@ -89,7 +90,7 @@ if ($hasGit -and (Get-Command gh -ErrorAction SilentlyContinue)) {
     try { gh auth setup-git 2>&1 | Out-Null } finally { $ErrorActionPreference = $eap }
 }
 
-function Sync($url, $dir, $branch) {
+function Sync($url, $dir, $branch, [string[]]$cloneArgs = @()) {
     if (Test-Path (Join-Path $dir '.git')) {
         Step "updating $dir"
         $remote = G -C $dir remote -v | Where-Object { $_ -like "*$url*" } | Select-Object -First 1
@@ -108,7 +109,7 @@ function Sync($url, $dir, $branch) {
         Step "downloading $(($url -split '/')[-1] -replace '\.git$', '') to $dir"
         New-Item -ItemType Directory -Force (Split-Path $dir) | Out-Null
         $b = if ($branch) { @('--branch', $branch) } else { @() }
-        $out = G clone --quiet @b $url $dir
+        $out = G clone --quiet @b @cloneArgs $url $dir
         if ($LASTEXITCODE -ne 0) { $out | ForEach-Object { Note $_ }; throw "could not download $url" }
     }
 }
@@ -129,7 +130,8 @@ function Sync-Zip($dir) {
 }
 
 $zipCopy = (Test-Path $Dir) -and -not (Test-Path (Join-Path $Dir '.git')) -and [bool](Get-ChildItem $Dir -Force | Select-Object -First 1)
-if ($hasGit -and -not $zipCopy) { Sync $forkUrl $Dir $branch } else { Sync-Zip $Dir }
+# Just the latest commit: a third of the time of the full history.
+if ($hasGit -and -not $zipCopy) { Sync $forkUrl $Dir $branch @('--depth', '1') } else { Sync-Zip $Dir }
 
 # Kiell's private repos: only when this PC can already read them (stored login).
 $jx = Join-Path $Tools 'jx'

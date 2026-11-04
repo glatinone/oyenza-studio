@@ -34,5 +34,6 @@
     & $ps -NoProfile -ExecutionPolicy Bypass -File $script
     $code = $LASTEXITCODE
     Remove-Item $script -ErrorAction SilentlyContinue
-    if ($code -ne 0) { Write-Host "Floaty: setup stopped (exit $code), details above" -ForegroundColor Red }
+    # Exit 1 already said why; anything else came from PowerShell itself.
+    if ($code -ne 0 -and $code -ne 1) { Write-Host "Floaty: setup stopped (exit $code)" -ForegroundColor Red }
 }

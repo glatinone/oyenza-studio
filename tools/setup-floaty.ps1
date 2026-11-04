@@ -39,6 +39,7 @@ param(
     [switch]$NoStart
 )
 $ErrorActionPreference = 'Stop'
+trap { Write-Host "Floaty setup stopped: $($_.Exception.Message)" -ForegroundColor Red; exit 1 }
 $ProgressPreference = 'SilentlyContinue'
 try { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072 } catch {}
 $repo = Split-Path -Parent $PSScriptRoot
