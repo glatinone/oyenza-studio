@@ -1,11 +1,11 @@
 {
   "repo": "glatinone/oyenza-studio",
-  "checked_at": "2026-11-04T08:01:38Z",
+  "checked_at": "2026-11-05T02:48:43Z",
   "since": "2026-10-24",
   "downloads": 11306,
   "github_count": 11531,
   "ci_count": 605,
-  "last_7_days": 5602,
+  "last_7_days": 3501,
   "latest": null,
   "stars": 0,
   "forks": 0,
@@ -735,6 +735,10 @@
     },
     {
       "date": "2026-11-04",
+      "downloads": 0
+    },
+    {
+      "date": "2026-11-05",
       "downloads": 0
     }
   ]
