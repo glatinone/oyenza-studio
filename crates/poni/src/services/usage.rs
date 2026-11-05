@@ -208,6 +208,8 @@ struct Worker {
     link: InferenceLink,
     /// The pacing's steady clock.
     epoch: Instant,
+    /// Renews an expired Claude Code sign-in before its card is read.
+    renewer: super::claude_token::Renewer,
 }
 
 fn worker_main(shared: Arc<Shared>, sink: EventSink) {
@@ -258,6 +260,7 @@ impl Worker {
             pending: None,
             link: InferenceLink::Off,
             epoch: Instant::now(),
+            renewer: Default::default(),
         }
     }
 
@@ -393,6 +396,12 @@ impl Worker {
         // alone, which read what is there.
         let reach = if look == Look::Notices && p.runs_programs() { Reach::Local } else { reach };
         let now = crate::clock::unix_now();
+        if reach == Reach::Online && matches!(p.id(), ProviderId::Claude | ProviderId::ClaudeOrigin) {
+            if let Some(Want::File { path, .. }) = wants.first() {
+                let Worker { client, renewer, .. } = self;
+                renewer.renew(path, now, |r| fetch(client, r));
+            }
+        }
         let Worker { dirs, names, client, refusals, held, .. } = self;
         // The service's typed key, if it reads one, goes through the door:
         // never again to an address that refused it.

@@ -10,6 +10,7 @@ pub mod backdrop;
 pub mod bluetooth;
 pub mod calls;
 pub mod claude;
+mod claude_token;
 pub mod clipboard;
 pub mod frames;
 pub mod fullscreen;
