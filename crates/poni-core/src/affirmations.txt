@@ -115,26 +115,26 @@ Aku tidak takut salah|Salah adalah data untuk iterasi
 Skill is built, not born|And I am building mine right now
 
 # --- from affirmations.dev (collected 2026-11-06) ---
-You got this|affirmations.dev
-I believe in you|affirmations.dev
-I'm rooting for you|affirmations.dev
-You'll figure it out|affirmations.dev
-You'll find a way|affirmations.dev
-I know you'll sort it out|affirmations.dev
-You're doing a great job|affirmations.dev
-You're an inspiration|affirmations.dev
-You are a capable human|affirmations.dev
-You know more than you think|affirmations.dev
-Your mind is full of brilliant ideas|affirmations.dev
-Your life is about to be incredible|affirmations.dev
-I admire you for taking this on|affirmations.dev
-We are all works in progress|affirmations.dev
+You got this|One focused hour beats a worried day
+I believe in you|Your track record already proves it
+I'm rooting for you|Every build you ship is a win
+You'll figure it out|You always find the root cause
+You'll find a way|Tembok cuma tanda cari jalan lain
+I know you'll sort it out|Satu langkah kecil, lalu berikutnya
+You're doing a great job|Yang kamu bangun dipakai setiap hari
+You're an inspiration|Orang belajar dari caramu bekerja
+You are a capable human|Kamu sudah melewati yang lebih berat
+You know more than you think|Trust what your experience taught you
+Your mind is full of brilliant ideas|Ship one of them today
+Your life is about to be incredible|Keluarga, karier, bisnis: semua tumbuh
+I admire you for taking this on|Hard problems are where you shine
+We are all works in progress|Progress, not perfection
 10x engineers are a myth|Steady 1x every day beats them
-The past does not equal the future|affirmations.dev
-If everything was easy you'd be bored|affirmations.dev
-It'll feel magical when it's working|affirmations.dev
-Mistakes don't make you less capable|affirmations.dev
-You are worthy and deserving of respect|affirmations.dev
+The past does not equal the future|Hari ini kamu mulai dari yang terbaik
+If everything was easy you'd be bored|Challenge is your favourite fuel
+It'll feel magical when it's working|Keep going until it clicks
+Mistakes don't make you less capable|Mereka bikin kamu lebih tajam
+You are worthy and deserving of respect|Stand tall in every room you enter
 It's not a mistake|It's a learning opportunity
 Failure is just another way to learn|how to do something right
 Starting is the most difficult step|But you can do it

@@ -50,3 +50,11 @@ opt-level = "s"
 # for moments every few minutes, while the tab is open or its notices are on.
 [profile.release.package.studio-usage]
 opt-level = "s"
+
+# Iteration builds (2026-11-06): thin LTO + parallel codegen + incremental, several times faster than
+# release on this 15 W laptop. Ship with --release; try changes with --profile fast (target\...\fast\).
+[profile.fast]
+inherits = "release"
+lto = "thin"
+codegen-units = 16
+incremental = true
