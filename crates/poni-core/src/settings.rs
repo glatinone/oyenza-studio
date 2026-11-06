@@ -86,9 +86,11 @@ pub struct Settings {
     /// top edge clear. The key stays so files from those versions still load.
     pub step_aside: bool,
     /// The closed island lets clicks through to the window under it (a
-    /// browser's tabs along the top edge): it opens only when the pointer
-    /// rests on it without a click, and Ctrl held over it makes it take the
-    /// mouse again (drag it, right-click it). Notices stay clickable.
+    /// browser's tabs along the top edge) and fades almost away under the
+    /// pointer, so what is behind it can be read. It opens when the pointer
+    /// rests against the top edge of the screen above it, or with Ctrl held
+    /// over it (which also lets it be dragged or right-clicked). Notices
+    /// stay clickable.
     pub rest_click_through: bool,
     pub monitor: MonitorChoice,
     /// Where the island sits along the top edge once dragged there: its

@@ -552,6 +552,10 @@ pub struct App {
     pass_blocked: bool,
     /// Ctrl, or a drag carried in, over the island: it takes the mouse until the pointer leaves.
     pass_hold: bool,
+    /// The click-through island is under the pointer: it fades to [`GHOST_ALPHA`].
+    pass_over: bool,
+    /// How much of the island is drawn (1 = all; fades toward [`GHOST_ALPHA`]).
+    ghost: f32,
     /// The pointer left the open island: close it on the next frame.
     collapse_due: bool,
     /// When the pointer last closed the island by leaving it.
@@ -621,9 +625,15 @@ const DWELL_SLOP: f32 = 4.0;
 /// outline is: overshooting an edge costs no close-and-reopen.
 const REOPEN_S: f64 = 0.3;
 /// Click-through rest: how often the pointer is looked at, and how long it
-/// must rest on the closed island (no click, no travel) before it opens.
+/// must rest against the top edge above the closed island (no click, no
+/// travel) before it opens.
 const PASS_POLL_MS: u32 = 40;
-const PASS_DWELL_MS: u32 = 450;
+const PASS_DWELL_MS: u32 = 350;
+/// Click-through rest: how much of the closed island shows under the
+/// pointer (what is behind it, a tab's title, reads through), and how fast
+/// it fades (time constant, seconds).
+const GHOST_ALPHA: f32 = 0.08;
+const GHOST_TAU: f32 = 0.05;
 /// A hold that kept the island open (typing, a file drag, Phone drop, the
 /// pin) ended while the pointer is elsewhere: close after this grace, so
 /// the change can be seen.
@@ -787,6 +797,8 @@ impl App {
             pass_arm: None,
             pass_blocked: false,
             pass_hold: false,
+            pass_over: false,
+            ghost: 1.0,
             collapse_due: false,
             left_at: f64::NEG_INFINITY,
             menu_open: false,
@@ -3616,10 +3628,11 @@ impl App {
             }
         }
         self.pass_arm = None;
+        self.pass_over = false;
         if want {
             // Closed under a resting pointer: it waits for the pointer to
             // leave before it can open again.
-            self.pass_blocked = self.pass_pointer().is_some_and(|(_, inside)| inside);
+            self.pass_blocked = self.pass_pointer().is_some_and(|(_, over, _)| over);
             if self.hovering {
                 self.hovering = false;
                 self.input.mouse = None;
@@ -3628,38 +3641,61 @@ impl App {
         }
     }
 
-    /// The pointer in the island's DIPs, and whether it is on the closed island's body.
-    fn pass_pointer(&self) -> Option<(Point, bool)> {
+    /// The pointer in the island's DIPs; whether it is over the closed
+    /// island (its body, or the gap above it up to the screen's edge); and
+    /// whether it is against the top edge of the screen above it.
+    fn pass_pointer(&self) -> Option<(Point, bool, bool)> {
         let mut pt = POINT::default();
         unsafe { GetCursorPos(&mut pt) }.ok()?;
         let _ = unsafe { windows::Win32::Graphics::Gdi::ScreenToClient(self.hwnd, &mut pt) };
         let s = self.gfx.scale();
         let p = Point::new(pt.x as f32 / s, pt.y as f32 / s);
-        Some((p, self.island.body_rect_at(self.cx).contains(p)))
+        let body = self.island.body_rect_at(self.cx);
+        let over = pt.y >= 0 && p.x >= body.x && p.x < body.x + body.w && p.y < body.y + body.h;
+        Some((p, over, over && pt.y <= 1))
     }
 
     /// Click-through rest, every [`PASS_POLL_MS`]: the window gets no mouse
-    /// messages, so the pointer is watched here. A click on the island went
-    /// to the window under it (a browser tab) and blocks opening until the
-    /// pointer leaves; resting still on it for [`PASS_DWELL_MS`] opens it.
+    /// messages, so the pointer is watched here. Over the island it fades
+    /// almost away; a click there went to the window under it (a browser
+    /// tab) and blocks opening until the pointer leaves; resting still
+    /// against the top edge above it for [`PASS_DWELL_MS`] opens it.
     fn pass_tick(&mut self) {
         if !self.pass_on {
+            let at = self.pass_pointer();
             // Opened by a resting pointer that hasn't moved over it since:
             // no leave is tracked yet, so a pointer already off the island
             // closes it from here.
-            let off = self.expanded && !self.hovering && self.pass_pointer().is_some_and(|(p, _)| !self.hovering_inside(p));
+            let off = self.expanded && !self.hovering && at.is_some_and(|(p, _, _)| !self.hovering_inside(p));
             if off {
                 self.pointer_left();
             }
-            if off || !self.expanded || self.hovering {
+            // A hold (Ctrl, a drag carried in) ends once the pointer is off
+            // the closed island, whether or not it ever moved over it.
+            if self.pass_hold && !self.expanded && self.grab.is_none() && !self.input.down && at.is_some_and(|(_, over, _)| !over) {
+                self.pass_hold = false;
+                self.hovering = false;
+                self.input.mouse = None;
+                self.cancel_hover();
+                self.sync_passthrough();
+                self.request_frame();
+                return;
+            }
+            let watching = (self.expanded && !self.hovering && !off) || (self.pass_hold && !self.expanded);
+            if !watching {
                 unsafe {
                     let _ = KillTimer(self.hwnd, TIMER_PASS);
                 }
             }
             return;
         }
-        let Some((p, inside)) = self.pass_pointer() else { return };
-        if !inside {
+        let Some((p, over, edge)) = self.pass_pointer() else { return };
+        if over != self.pass_over {
+            // Fade away under the pointer (what's behind reads through), back on leaving.
+            self.pass_over = over;
+            self.request_frame();
+        }
+        if !over {
             self.pass_blocked = false;
             self.pass_arm = None;
             return;
@@ -3671,11 +3707,21 @@ impl App {
             // it takes the mouse again until the pointer leaves.
             self.pass_hold = true;
             self.sync_passthrough();
+            // Keep watching: the hold ends when the pointer is off it (see above).
+            unsafe {
+                SetTimer(self.hwnd, TIMER_PASS, PASS_POLL_MS, None);
+            }
             self.request_frame();
             return;
         }
         if button || self.pass_blocked {
             self.pass_blocked = true;
+            self.pass_arm = None;
+            return;
+        }
+        if !edge {
+            // Over the island but not against the top edge: it only fades,
+            // so a tab's title under it can be read without it opening.
             self.pass_arm = None;
             return;
         }
@@ -3979,6 +4025,11 @@ impl App {
         }
 
         self.sync_passthrough();
+        let ghost_to = if self.pass_on && self.pass_over { GHOST_ALPHA } else { 1.0 };
+        self.ghost += (ghost_to - self.ghost) * (1.0 - (-(dt as f32) / GHOST_TAU).exp());
+        if (ghost_to - self.ghost).abs() < 0.01 {
+            self.ghost = ghost_to;
+        }
         // A window under where the island rests: it rests out of the way.
         self.sync_aside();
         let target = self.target_mode();
@@ -4127,6 +4178,7 @@ impl App {
         };
         let (repaint, anim, focus, ui_live) = match self.gfx.begin(dirty) {
             Ok(mut canvas) => {
+                canvas.set_alpha(self.ghost);
                 if self.expanded && !canvas.on_gpu() {
                     // Near-invisible hit margin: a forgiving edge for the open
                     // panel. Collapsed, only the visible shape takes the mouse.
@@ -4294,6 +4346,7 @@ impl App {
             || glass_moving
             || !self.st.cmds.is_empty()
             || self.outgoing.is_some()
+            || self.ghost != if self.pass_on && self.pass_over { GHOST_ALPHA } else { 1.0 }
             || self.page_anim.is_some()
             || self.settings_moving();
         // The display mode's rate, not the measured period: a divisor that
