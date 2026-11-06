@@ -85,6 +85,11 @@ pub struct Settings {
     /// always off (`sanitized`); the Hidden idle look is the way to keep the
     /// top edge clear. The key stays so files from those versions still load.
     pub step_aside: bool,
+    /// The closed island lets clicks through to the window under it (a
+    /// browser's tabs along the top edge): it opens only when the pointer
+    /// rests on it without a click, and Ctrl held over it makes it take the
+    /// mouse again (drag it, right-click it). Notices stay clickable.
+    pub rest_click_through: bool,
     pub monitor: MonitorChoice,
     /// Where the island sits along the top edge once dragged there: its
     /// centre as a share of the monitor's width (0 the left edge, 1 the
@@ -238,6 +243,7 @@ impl Default for Settings {
             expanded_width: 620.0,
             hide_in_fullscreen: true,
             step_aside: false,
+            rest_click_through: true,
             monitor: MonitorChoice::Primary,
             island_x: None,
             show_media_activity: true,

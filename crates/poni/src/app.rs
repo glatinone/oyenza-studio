@@ -66,6 +66,8 @@ const TIMER_PEEK: usize = 10;
 const TIMER_UPDATE: usize = 11;
 /// "Every display": where the pointer is, and the copies on the other screens.
 const TIMER_MIRROR: usize = 12;
+/// Click-through rest (`Settings::rest_click_through`): the pointer watch.
+const TIMER_PASS: usize = 13;
 /// Show over games: how long the readout shows over a game, the least time
 /// between two peeks for a frame-rate drop, and Alt+Shift+F's id.
 const PEEK_S: f64 = 5.0;
@@ -541,6 +543,15 @@ pub struct App {
     page_anim: Option<(PageKind, f64, f32)>,
     /// Where the hover (dwell) timer was last armed; None when it isn't.
     hover_arm: Option<Point>,
+    /// Click-through rest: the window lets the mouse through now.
+    pass_on: bool,
+    /// Where and when the pointer started resting on the click-through island.
+    pass_arm: Option<(Point, f64)>,
+    /// A click (or a collapse) happened with the pointer on the click-through
+    /// island: it doesn't open until the pointer has left it.
+    pass_blocked: bool,
+    /// Ctrl, or a drag carried in, over the island: it takes the mouse until the pointer leaves.
+    pass_hold: bool,
     /// The pointer left the open island: close it on the next frame.
     collapse_due: bool,
     /// When the pointer last closed the island by leaving it.
@@ -609,6 +620,10 @@ const DWELL_SLOP: f32 = 4.0;
 /// (while it is still shrinking) opens it again at once, from where the
 /// outline is: overshooting an edge costs no close-and-reopen.
 const REOPEN_S: f64 = 0.3;
+/// Click-through rest: how often the pointer is looked at, and how long it
+/// must rest on the closed island (no click, no travel) before it opens.
+const PASS_POLL_MS: u32 = 40;
+const PASS_DWELL_MS: u32 = 450;
 /// A hold that kept the island open (typing, a file drag, Phone drop, the
 /// pin) ended while the pointer is elsewhere: close after this grace, so
 /// the change can be seen.
@@ -768,6 +783,10 @@ impl App {
             outgoing: None,
             page_anim: None,
             hover_arm: None,
+            pass_on: false,
+            pass_arm: None,
+            pass_blocked: false,
+            pass_hold: false,
             collapse_due: false,
             left_at: f64::NEG_INFINITY,
             menu_open: false,
@@ -1213,6 +1232,7 @@ impl App {
             }
             WM_MOUSELEAVE => {
                 self.hovering = false;
+                self.pass_hold = false;
                 self.input.mouse = None;
                 self.cancel_hover();
                 self.pointer_left();
@@ -1773,6 +1793,7 @@ impl App {
     fn on_timer(&mut self, id: usize) {
         match id {
             TIMER_MIRROR => self.mirror_tick(),
+            TIMER_PASS => self.pass_tick(),
             TIMER_HOVER => {
                 unsafe {
                     let _ = KillTimer(self.hwnd, TIMER_HOVER);
@@ -3557,6 +3578,134 @@ impl App {
         self.request_frame();
     }
 
+    /// Click-through rest (`Settings::rest_click_through`): whether the
+    /// closed island should let the mouse through now. Anything that needs
+    /// a click at rest (a notice, the prayer countdown's OK, a press or drag
+    /// under way) keeps the mouse.
+    fn wants_passthrough(&self) -> bool {
+        self.st.settings.rest_click_through
+            && self.selftest.is_none()
+            && !self.expanded
+            && !self.pass_hold
+            && self.grab.is_none()
+            && !self.input.down
+            && !self.drag_hover
+            && !self.menu_open
+            && self.mode != Mode::Notice
+            && !self.hits.iter().any(|h| h.id == wid(activities::PRAYER_OK_ID))
+    }
+
+    /// Turn the click-through style on or off to match [`Self::wants_passthrough`].
+    fn sync_passthrough(&mut self) {
+        let want = self.wants_passthrough();
+        if want == self.pass_on {
+            return;
+        }
+        self.pass_on = want;
+        unsafe {
+            let ex = GetWindowLongPtrW(self.hwnd, GWL_EXSTYLE);
+            let flag = WS_EX_TRANSPARENT.0 as isize;
+            let new = if want { ex | flag } else { ex & !flag };
+            if new != ex {
+                SetWindowLongPtrW(self.hwnd, GWL_EXSTYLE, new);
+            }
+            if want {
+                SetTimer(self.hwnd, TIMER_PASS, PASS_POLL_MS, None);
+            } else {
+                let _ = KillTimer(self.hwnd, TIMER_PASS);
+            }
+        }
+        self.pass_arm = None;
+        if want {
+            // Closed under a resting pointer: it waits for the pointer to
+            // leave before it can open again.
+            self.pass_blocked = self.pass_pointer().is_some_and(|(_, inside)| inside);
+            if self.hovering {
+                self.hovering = false;
+                self.input.mouse = None;
+                self.cancel_hover();
+            }
+        }
+    }
+
+    /// The pointer in the island's DIPs, and whether it is on the closed island's body.
+    fn pass_pointer(&self) -> Option<(Point, bool)> {
+        let mut pt = POINT::default();
+        unsafe { GetCursorPos(&mut pt) }.ok()?;
+        let _ = unsafe { windows::Win32::Graphics::Gdi::ScreenToClient(self.hwnd, &mut pt) };
+        let s = self.gfx.scale();
+        let p = Point::new(pt.x as f32 / s, pt.y as f32 / s);
+        Some((p, self.island.body_rect_at(self.cx).contains(p)))
+    }
+
+    /// Click-through rest, every [`PASS_POLL_MS`]: the window gets no mouse
+    /// messages, so the pointer is watched here. A click on the island went
+    /// to the window under it (a browser tab) and blocks opening until the
+    /// pointer leaves; resting still on it for [`PASS_DWELL_MS`] opens it.
+    fn pass_tick(&mut self) {
+        if !self.pass_on {
+            // Opened by a resting pointer that hasn't moved over it since:
+            // no leave is tracked yet, so a pointer already off the island
+            // closes it from here.
+            let off = self.expanded && !self.hovering && self.pass_pointer().is_some_and(|(p, _)| !self.hovering_inside(p));
+            if off {
+                self.pointer_left();
+            }
+            if off || !self.expanded || self.hovering {
+                unsafe {
+                    let _ = KillTimer(self.hwnd, TIMER_PASS);
+                }
+            }
+            return;
+        }
+        let Some((p, inside)) = self.pass_pointer() else { return };
+        if !inside {
+            self.pass_blocked = false;
+            self.pass_arm = None;
+            return;
+        }
+        let key = |k: VIRTUAL_KEY| (unsafe { GetAsyncKeyState(k.0 as i32) } as u16) & 0x8000 != 0;
+        let button = key(VK_LBUTTON) || key(VK_RBUTTON) || key(VK_MBUTTON);
+        if key(VK_CONTROL) || (button && self.pass_arm.is_none() && !self.pass_blocked) {
+            // Ctrl over it, or a drag carried onto it (a file for the Shelf):
+            // it takes the mouse again until the pointer leaves.
+            self.pass_hold = true;
+            self.sync_passthrough();
+            self.request_frame();
+            return;
+        }
+        if button || self.pass_blocked {
+            self.pass_blocked = true;
+            self.pass_arm = None;
+            return;
+        }
+        let now = clock::mono();
+        let dwell = self.st.settings.hover_delay_ms.max(PASS_DWELL_MS) as f64 / 1000.0;
+        match self.pass_arm {
+            Some((p0, t0)) if (p.x - p0.x).hypot(p.y - p0.y) <= DWELL_SLOP => {
+                if now - t0 >= dwell {
+                    self.pass_arm = None;
+                    self.pass_hold = true;
+                    self.sync_passthrough();
+                    self.pass_hold = false;
+                    // No leave tracking yet: Windows hit-tests the window again
+                    // only once the pointer moves, and a leave asked for now
+                    // would arrive at once and close it. The first move over
+                    // the open island starts the usual hover (WM_MOUSEMOVE).
+                    self.input.mouse = Some(p);
+                    pinfo!("click-through rest: opened by a resting pointer");
+                    self.expand();
+                    // Keep watching until the pointer moves over it (see above).
+                    unsafe {
+                        SetTimer(self.hwnd, TIMER_PASS, PASS_POLL_MS, None);
+                    }
+                    self.request_frame();
+                }
+            }
+            _ => self.pass_arm = Some((p, now)),
+        }
+    }
+
     /// "Every display": watch the pointer and keep the copies on the other
     /// screens in step (a light timer; the copies themselves are drawn by
     /// Windows). Any other choice: no copies.
@@ -3829,6 +3978,7 @@ impl App {
             self.left_at = clock::mono();
         }
 
+        self.sync_passthrough();
         // A window under where the island rests: it rests out of the way.
         self.sync_aside();
         let target = self.target_mode();
