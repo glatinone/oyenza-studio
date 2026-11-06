@@ -73,6 +73,9 @@ pub enum ProviderId {
     /// Claude Code's default folder (`~/.claude`) while `CLAUDE_CONFIG_DIR`
     /// points the main card elsewhere: a second account on the same PC.
     ClaudeOrigin,
+    /// Claude Code's `~/.claude-mbg` folder (the claudeMBG launcher): a
+    /// third account on the same PC.
+    ClaudeMbg,
     OpenCode,
     Gemini,
     /// Google's Antigravity CLI (`agy`), which took over from Gemini CLI.
@@ -88,10 +91,11 @@ pub enum ProviderId {
 }
 
 impl ProviderId {
-    pub const ALL: [ProviderId; 13] = [
+    pub const ALL: [ProviderId; 14] = [
         ProviderId::Codex,
         ProviderId::Claude,
         ProviderId::ClaudeOrigin,
+        ProviderId::ClaudeMbg,
         ProviderId::OpenCode,
         ProviderId::Gemini,
         ProviderId::Antigravity,
@@ -110,6 +114,7 @@ impl ProviderId {
             ProviderId::Codex => "codex",
             ProviderId::Claude => "claude",
             ProviderId::ClaudeOrigin => "claude-origin",
+            ProviderId::ClaudeMbg => "claude-mbg",
             ProviderId::OpenCode => "opencode",
             ProviderId::Gemini => "gemini",
             ProviderId::Antigravity => "antigravity",
@@ -129,6 +134,7 @@ impl ProviderId {
             ProviderId::Codex => "Codex",
             ProviderId::Claude => "Claude Loka",
             ProviderId::ClaudeOrigin => "Claude Origin",
+            ProviderId::ClaudeMbg => "Claude MBG",
             ProviderId::OpenCode => "OpenCode Go",
             ProviderId::Gemini => "Gemini CLI",
             ProviderId::Antigravity => "Antigravity",
@@ -528,11 +534,12 @@ pub struct KeyAsk {
 }
 
 /// Every service, in [`ProviderId::ALL`] order.
-pub fn all() -> [&'static dyn Provider; 13] {
+pub fn all() -> [&'static dyn Provider; 14] {
     [
         &codex::Codex,
         &claude::Claude,
         &claude::ClaudeOrigin,
+        &claude::ClaudeMbg,
         &opencode::OpenCode,
         &gemini::Gemini,
         &antigravity::Antigravity,

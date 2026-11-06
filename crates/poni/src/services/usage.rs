@@ -396,7 +396,7 @@ impl Worker {
         // alone, which read what is there.
         let reach = if look == Look::Notices && p.runs_programs() { Reach::Local } else { reach };
         let now = crate::clock::unix_now();
-        if reach == Reach::Online && matches!(p.id(), ProviderId::Claude | ProviderId::ClaudeOrigin) {
+        if reach == Reach::Online && matches!(p.id(), ProviderId::Claude | ProviderId::ClaudeOrigin | ProviderId::ClaudeMbg) {
             if let Some(Want::File { path, .. }) = wants.first() {
                 let Worker { client, renewer, .. } = self;
                 renewer.renew(path, now, |r| fetch(client, r));

@@ -173,6 +173,50 @@ impl Provider for ClaudeOrigin {
     }
 }
 
+/// Claude Code's `~/.claude-mbg` folder, the claudeMBG launcher's account,
+/// read the way Claude Code reads it there (`CLAUDE_CONFIG_DIR` pointed at
+/// it). No such folder: no card.
+pub struct ClaudeMbg;
+
+impl ClaudeMbg {
+    fn mbg(dirs: &Dirs) -> Dirs {
+        let mut d = dirs.clone();
+        d.env.retain(|(k, _)| k != "CLAUDE_CONFIG_DIR");
+        let root = dirs.home_join(&[".claude-mbg"]);
+        d.env.push(("CLAUDE_CONFIG_DIR".to_string(), root.to_string_lossy().into_owned()));
+        d
+    }
+}
+
+impl Provider for ClaudeMbg {
+    fn id(&self) -> ProviderId {
+        ProviderId::ClaudeMbg
+    }
+
+    fn env(&self) -> &'static [&'static str] {
+        &["CLAUDE_CONFIG_DIR"]
+    }
+
+    fn wants(&self, dirs: &Dirs) -> Vec<Want> {
+        Claude.wants(&Self::mbg(dirs))
+    }
+
+    fn next(&self, cx: &Ctx, replies: &[Result<Reply, NetFail>]) -> Step {
+        let d = Self::mbg(cx.dirs);
+        match Claude.next(&Ctx { dirs: &d, got: cx.got, now: cx.now, reach: cx.reach }, replies) {
+            Step::Done(Ok(mut s)) => {
+                s.provider = ProviderId::ClaudeMbg;
+                Step::Done(Ok(s))
+            }
+            step => step,
+        }
+    }
+
+    fn min_gap_s(&self) -> u64 {
+        Claude.min_gap_s()
+    }
+}
+
 /// The keychain item Claude Code 2.x keeps its sign-in in: with
 /// `CLAUDE_CONFIG_DIR` set, a dash and the first 8 hex digits of that
 /// folder's SHA-256 follow the name, so each folder signs in on its own.
