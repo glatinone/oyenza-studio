@@ -92,6 +92,12 @@ pub struct Settings {
     /// over it (which also lets it be dragged or right-clicked). Notices
     /// stay clickable.
     pub rest_click_through: bool,
+    /// While an app window reaches the top edge under the island (a
+    /// maximized browser or terminal, its tabs there), the closed music pill
+    /// tucks in to the cover and the bars, so the tabs beside it stay free;
+    /// a new song still shows its title for a moment, and the open card
+    /// reads in full. On a free top edge it reads as before.
+    pub compact_over_apps: bool,
     pub monitor: MonitorChoice,
     /// Where the island sits along the top edge once dragged there: its
     /// centre as a share of the monitor's width (0 the left edge, 1 the
@@ -246,6 +252,7 @@ impl Default for Settings {
             hide_in_fullscreen: true,
             step_aside: false,
             rest_click_through: true,
+            compact_over_apps: true,
             monitor: MonitorChoice::Primary,
             island_x: None,
             show_media_activity: true,

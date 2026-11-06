@@ -927,7 +927,7 @@ impl App {
     fn sync_top_watch(&mut self) {
         let m = &self.monitor;
         let px = (TOP_BAND * self.gfx.scale()).ceil() as i32;
-        let band = self.st.settings.step_aside.then(|| RECT { left: m.rect.left, top: m.top(), right: m.rect.right, bottom: m.top() + px });
+        let band = (self.st.settings.step_aside || self.st.settings.compact_over_apps).then(|| RECT { left: m.rect.left, top: m.top(), right: m.rect.right, bottom: m.top() + px });
         if band.is_none() {
             self.top_windows.clear();
         }
@@ -3856,6 +3856,17 @@ impl App {
         let r = self.rest_rect();
         let under = self.top_windows.iter().any(|t| t[0] < r.right && t[2] > r.left && t[1] < r.bottom && t[3] > r.top);
         let aside = self.st.settings.step_aside && !self.fullscreen_on && under;
+        // Tucked: judged over the widest music pill's span, not the pill's
+        // own width, so the pill shrinking can't take a window off it.
+        let half = (pill::media::WIDEST_W / 2.0 * self.gfx.scale()).ceil() as i32;
+        let mid = (r.left + r.right) / 2;
+        let span = self.top_windows.iter().any(|t| t[0] < mid + half && t[2] > mid - half && t[1] < r.bottom && t[3] > r.top);
+        let tucked = self.st.settings.compact_over_apps && !self.fullscreen_on && span;
+        if tucked != self.st.tucked {
+            self.st.tucked = tucked;
+            self.log_queue.push(format!("tuck: {}", if tucked { "a window under the island; the music pill tucks in" } else { "top edge free; the music pill reads in full" }));
+            self.request_frame();
+        }
         if aside != self.st.aside {
             self.st.aside = aside;
             let why = if aside { "a window is under the island; it rests out of the way" } else { "nothing under the island; it rests as before" };

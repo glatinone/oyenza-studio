@@ -103,8 +103,23 @@ thread_local! {
 }
 
 pub fn geom(st: &AppState) -> Option<Geom> {
+    if tucked(st) {
+        return Some(Geom::new(TUCKED_W, H, H / 2.0));
+    }
     let h = height(st);
     Some(Geom::new(fit_w(), h, h / 2.0))
+}
+
+/// The widest the music pill gets (`App::sync_aside` judges a window under
+/// it over this span).
+pub(crate) const WIDEST_W: f32 = MAX_W;
+/// Tucked: the cover, a gap and the bars.
+const TUCKED_W: f32 = ART_INSET + ART + 2.0 * TEXT_CLEAR + EQ_W + EQ_RIGHT;
+
+/// A window's tabs under the island (`AppState::tucked`), and no new song
+/// showing its title: the pill keeps to the cover and the bars.
+fn tucked(st: &AppState) -> bool {
+    st.tucked && st.ui.peek_until <= st.now
 }
 
 /// How tall the music pill is: two rows while the song sings with its
@@ -136,7 +151,9 @@ pub fn draw(ui: &mut Ui, st: &mut AppState, body: Rect) -> bool {
     let eq_x = body.right() - EQ_RIGHT - EQ_W;
     // The open card's equalizer colour, so the bars keep it through a morph.
     equalizer(ui, eq_x, cy, super::music::eq_color(accent), level, moving, now);
-    middle(ui, st, body, art.right() + TEXT_CLEAR, eq_x - TEXT_CLEAR, lerp(PAUSED_TEXT, 1.0, level));
+    if !tucked(st) {
+        middle(ui, st, body, art.right() + TEXT_CLEAR, eq_x - TEXT_CLEAR, lerp(PAUSED_TEXT, 1.0, level));
+    }
     true
 }
 
@@ -178,7 +195,9 @@ pub fn is_live(st: &AppState) -> Option<bool> {
 /// title), whichever comes first.
 pub fn next_wake(st: &AppState) -> Option<f64> {
     let peek = (st.ui.peek_until > st.now).then_some(st.ui.peek_until);
-    match (super::lyric::next_wake(st), peek) {
+    // Tucked, the lines aren't shown: only the end of a peek needs a frame.
+    let line = if st.tucked { None } else { super::lyric::next_wake(st) };
+    match (line, peek) {
         (Some(a), Some(b)) => Some(a.min(b)),
         (a, b) => a.or(b),
     }

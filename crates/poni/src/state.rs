@@ -820,6 +820,10 @@ pub struct AppState {
     /// invisible strip at the top edge (`activities::Mode::Aside`). Windows
     /// sets it; the Mac never does.
     pub aside: bool,
+    /// An app window reaches the top edge under the island and
+    /// `compact_over_apps` is on: the closed music pill tucks in
+    /// (`pill::media`). Windows sets it; the Mac never does.
+    pub tucked: bool,
     /// Files are being dragged over the island right now.
     pub drag_hover: bool,
     /// Phone drop, while it's open.
@@ -930,6 +934,7 @@ impl AppState {
             media_paused_at: None,
             pinned: false,
             aside: false,
+            tucked: false,
             drag_hover: false,
             phone: None,
             paired: Vec::new(),
