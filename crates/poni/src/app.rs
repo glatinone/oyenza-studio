@@ -424,6 +424,9 @@ pub struct App {
     /// "in 5 min" (1) and "now" (2).
     meetings: Vec<services::meetings::Meeting>,
     meetings_told: Vec<(i64, String, u8)>,
+    /// The affirmation slot already shown (`poni_core::affirm::slot`). Starts at
+    /// the current slot, so the first one shows a few minutes after start.
+    affirm_shown: Option<i64>,
     /// Teams has the microphone open: a call is on (services::calls).
     teams_call: bool,
     /// Animation time of the last frame (the vblank it was shown on).
@@ -733,6 +736,7 @@ impl App {
             mirrors: Default::default(),
             meetings: Vec::new(),
             meetings_told: Vec::new(),
+            affirm_shown: poni_core::affirm::slot(clock::unix_now(), 5),
             teams_call: false,
             last_frame_t: 0.0,
             surface: Surface::default(),
@@ -1876,6 +1880,7 @@ impl App {
             TIMER_MINUTE => {
                 self.schedule_minute_timer();
                 self.meeting_heads_up();
+                self.affirm_due();
                 // Another notice took the call's place and has gone.
                 if self.teams_call && self.st.notice.is_none() {
                     self.show_call_notice();
@@ -3540,6 +3545,28 @@ impl App {
 
     /// A meeting from Outlook starts in 5 minutes or now: a notice with its
     /// title; a click joins it (its Teams link), else opens nothing.
+    /// An affirmation every `affirm_every_min` minutes, on the minute timer that
+    /// already runs for the clock (no timer of its own). It waits while the
+    /// island is open, another notice is up, a full-screen app hid the island,
+    /// or nobody is there (locked, display off, battery saver); then it shows
+    /// at the next minute of the same slot, or skips to the next slot.
+    fn affirm_due(&mut self) {
+        let Some(slot) = poni_core::affirm::slot(clock::unix_now(), self.st.settings.affirm_every_min) else { return };
+        if self.affirm_shown == Some(slot) {
+            return;
+        }
+        if self.locked || self.display_off || self.st.power.saver || self.expanded || self.fullscreen_hidden || self.st.notice.is_some() {
+            return;
+        }
+        self.affirm_shown = Some(slot);
+        let (title, line) = poni_core::affirm::pick(slot);
+        if title.is_empty() {
+            return;
+        }
+        self.st.notify(Icon::Bolt, palette::YELLOW, title, line, 10.0, None);
+        self.request_frame();
+    }
+
     fn meeting_heads_up(&mut self) {
         let now = clock::unix_now();
         self.meetings_told.retain(|(start, ..)| *start > now - 3600);

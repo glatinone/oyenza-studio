@@ -155,6 +155,9 @@ pub struct Settings {
     pub notifications: crate::notifications::NotificationSettings,
     /// How Oyen talks on the IELTS page (Sopan, Gaul or Ngegas, the default).
     pub ielts_spice: Spice,
+    /// An affirmation shows on the resting island every this many minutes
+    /// (`crate::affirm`); 0 = off.
+    pub affirm_every_min: u32,
 }
 
 /// What the AI tab shows and whether it gives heads-up notices.
@@ -277,6 +280,7 @@ impl Default for Settings {
             record: RecordSettings::default(),
             notifications: crate::notifications::NotificationSettings::default(),
             ielts_spice: Spice::default(),
+            affirm_every_min: 5,
         }
     }
 }
@@ -367,6 +371,7 @@ impl Settings {
         self.hover_delay_ms = self.hover_delay_ms.min(2000);
         self.lyrics_offset_ms = self.lyrics_offset_ms.clamp(-5000, 5000);
         self.collapse_delay_ms = self.collapse_delay_ms.min(5000);
+        self.affirm_every_min = self.affirm_every_min.min(240);
         if !self.expanded_width.is_finite() {
             self.expanded_width = 620.0;
         }

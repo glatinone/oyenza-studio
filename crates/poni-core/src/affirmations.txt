@@ -1,0 +1,150 @@
+# Affirmations Floaty shows on the resting island, one every few minutes
+# (Settings key affirm_every_min, default 5, 0 = off).
+# One per line: title|second line. Title up to ~38 characters and the second line up to ~46,
+# so both fit in a notice without being cut. Lines starting with # are skipped.
+#
+# Personal set for Kiell, English and Bahasa Indonesia mixed.
+
+# --- career ---
+I build things that people actually use|jx, pulse, Floaty: proof, not plans
+Kariermu naik karena kamu deliver|Hasil nyata, bukan janji
+You are the CMO growthr.id needs|Every post moves the brand forward
+Aku dibayar untuk berpikir jernih|Dan aku makin tajam setiap hari
+My work speaks before I do|Ship it, then let it talk
+Skill-ku langka dan bernilai tinggi|Security, code, growth: semua di satu orang
+I turn hard problems into shipped tools|Wall in front? Find the 180° path
+Reputasiku dibangun tiap hari|Satu hasil bagus pada satu waktu
+Senior people want my opinion|Because it comes with working code
+Aku layak duduk di meja keputusan|Suaraku membawa data dan hasil
+Today I do the work others postpone|That is the whole advantage
+Karier ini maraton, aku kuat sampai akhir|Pace stabil, arah jelas
+
+# --- money and finance ---
+Money flows to people who create value|And I create value every day
+Uang datang ke aku dengan mudah|Karena aku menyelesaikan masalah orang
+I am building wealth on purpose|Not by luck, by system
+Penghasilanku tumbuh tahun ini|Dari gaji, bisnis, dan karya
+My finances get stronger every month|Spend with intent, invest with patience
+Aku pintar mengelola uang|Setiap rupiah punya tugas
+I deserve to be paid well|Price the value, not the hours
+Tabunganku bertambah, utangku berkurang|Pelan tapi pasti
+Rich is a skill and I am learning it|Compounding works for me now
+Aku menarik peluang yang menghasilkan|Rezeki datang dari banyak pintu
+
+# --- business ---
+growthr.id is growing because of me|Followers today, clients tomorrow
+Bisnisku bertumbuh setiap minggu|Satu klien, satu sistem, satu langkah
+I build systems, not just tasks|Automate once, benefit forever
+Aku berani menawarkan apa yang aku bisa|Yang diam tidak dapat apa-apa
+Every customer conversation teaches me|Listen first, sell second
+Produkku menyelesaikan masalah nyata|Dan orang mau membayarnya
+I think like an owner|In every room, on every project
+Distribusi adalah keunggulanku|dev.to, Instagram, LinkedIn: semua jalan
+
+# --- family ---
+My family is proud of who I am becoming|And I make time for them
+Keluargaku sehat, aman, dan bahagia|Aku bersyukur untuk mereka
+I work hard so my family can live freely|And I show up for them, not only provide
+Rumahku penuh tawa dan doa|Itu sumber kekuatanku
+I am present with the people I love|The laptop can wait
+Aku jadi teladan buat keluargaku|Dalam kerja, iman, dan sikap
+
+# --- people and relationships ---
+The right people find their way to me|Mentors, partners, friends, clients
+Tiap orang yang kutemui membawa pelajaran|Dan mungkin peluang baru
+I make strong first impressions|Calm, sharp, warm
+Aku membangun relasi yang tulus|Bukan transaksi, tapi kepercayaan
+My network grows because I give first|Help, share, connect
+Orang senang bekerja denganku|Karena aku bisa diandalkan
+I speak with clarity and confidence|People listen when I talk
+Aku dikelilingi orang-orang hebat|Dan aku pantas ada di sana
+Every meeting today goes in my favour|Prepared, present, positive
+Aku menjaga nama baik di setiap ruangan|Integritas adalah aset
+
+# --- growth ---
+I am better than I was last month|And next month I will be better again
+Aku belajar cepat, aku adaptasi cepat|Itu superpower-ku
+Discomfort means I am growing|Lean into it
+Aku tidak berhenti di error|Aku cari jalan baru
+Every hackathon makes me sharper|Build, demo, learn, repeat
+Tulisanku membantu orang lain|Setiap artikel adalah investasi
+I am a work in progress, moving fast|And I like the direction
+Versi terbaikku sedang dibangun|Commit demi commit
+
+# --- power and confidence ---
+I walk in like I belong, because I do|Confidence is earned by reps
+Aku punya kendali atas hidupku|Keputusanku, arahku
+My energy is high and focused|I spend it on what matters
+Aku tenang dalam tekanan|Justru di situ aku bersinar
+I am not here to play small|Big goals, daily action
+Aku kuat, cerdas, dan berani|Hari ini aku buktikan lagi
+Nothing I want is out of reach|It is just a few steps away
+
+# --- obsession and focus ---
+I am obsessed with getting it right|Accuracy and speed, both
+Fokusku tajam seperti laser|Satu hal penting dulu
+Average is not my standard|Excellence is
+Aku obsesi pada hasil, bukan sibuk|Output > activity
+I go deeper than everyone else|That is where the edge is
+Aku selesaikan apa yang aku mulai|Tanpa alasan
+
+# --- discipline ---
+Discipline is my freedom|Small promises to myself, kept daily
+Aku konsisten walau tidak mood|Sistem mengalahkan motivasi
+I do the hard thing first|The rest of the day gets easy
+Rutinitasku membangun masa depanku|Bangun, kerja, gerak, istirahat
+I keep my word, especially to myself|That is how trust in me is built
+Disiplin hari ini, kebebasan besok|Tahan sebentar, nikmati lama
+Rest is part of the plan|A quiet fan and a clear head
+
+# --- opportunity ---
+Opportunities find me ready|Prepared mind, open door
+Peluang besar sedang menuju ke aku|Dan aku siap menangkapnya
+I say yes to the right things|And no to everything else
+Setiap masalah adalah peluang tersembunyi|Aku pandai menemukannya
+Luck is preparation meeting a moment|I prepare every day
+Pintu terbuka untuk orang yang mengetuk|Hari ini aku ketuk lagi
+
+# --- practice makes perfect ---
+Practice makes perfect|Every rep counts, even the ugly ones
+Latihan bikin sempurna|Ulangi sampai jadi refleks
+Small progress is still progress|One commit is better than zero
+Satu persen lebih baik setiap hari|Hasilnya berlipat dalam setahun
+The reps nobody sees win the game|Keep shipping in the quiet
+Aku tidak takut salah|Salah adalah data untuk iterasi
+Skill is built, not born|And I am building mine right now
+
+# --- from affirmations.dev (collected 2026-11-06) ---
+You got this|affirmations.dev
+I believe in you|affirmations.dev
+I'm rooting for you|affirmations.dev
+You'll figure it out|affirmations.dev
+You'll find a way|affirmations.dev
+I know you'll sort it out|affirmations.dev
+You're doing a great job|affirmations.dev
+You're an inspiration|affirmations.dev
+You are a capable human|affirmations.dev
+You know more than you think|affirmations.dev
+Your mind is full of brilliant ideas|affirmations.dev
+Your life is about to be incredible|affirmations.dev
+I admire you for taking this on|affirmations.dev
+We are all works in progress|affirmations.dev
+10x engineers are a myth|Steady 1x every day beats them
+The past does not equal the future|affirmations.dev
+If everything was easy you'd be bored|affirmations.dev
+It'll feel magical when it's working|affirmations.dev
+Mistakes don't make you less capable|affirmations.dev
+You are worthy and deserving of respect|affirmations.dev
+It's not a mistake|It's a learning opportunity
+Failure is just another way to learn|how to do something right
+Starting is the most difficult step|But you can do it
+Everything has cracks|That's how the light gets in
+Sucking at something is the first step|towards being good at something
+Flaws in your past creations?|It's because you've evolved
+I give myself permission|to do what is right for me
+People with goals succeed|because they know where they're going
+Success is the progressive realization|of a worthy goal
+The path to success is massive action|Determined, every day
+Nothing is impossible|The word itself says I'm possible
+All you need is the plan and the roadmap|and the courage to press on
+Your life is a miracle of chance|waiting for you to shape its destiny
