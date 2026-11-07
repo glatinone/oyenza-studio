@@ -48,6 +48,22 @@ pub struct Listener {
 }
 
 const POLL: std::time::Duration = std::time::Duration::from_millis(1500);
+/// The list is read at least this often even when its store looks unchanged.
+const LOOK_ANYWAY: std::time::Duration = std::time::Duration::from_secs(60);
+
+/// A file's size and last write, to see a change without reading it.
+type Stamp = Option<(u64, std::time::SystemTime)>;
+
+fn stamp_of(p: &std::path::Path) -> Stamp {
+    std::fs::metadata(p).ok().and_then(|m| Some((m.len(), m.modified().ok()?)))
+}
+
+/// Windows' store of this user's notifications (SQLite, with its log): a
+/// new toast writes to it, reading the list doesn't.
+fn db_files() -> Vec<std::path::PathBuf> {
+    let Some(dir) = std::env::var_os("LOCALAPPDATA").map(|d| std::path::Path::new(&d).join("Microsoft").join("Windows").join("Notifications")) else { return Vec::new() };
+    ["wpndatabase.db", "wpndatabase.db-wal"].iter().map(|f| dir.join(f)).collect()
+}
 
 impl Listener {
     /// Look at what Windows allows and listen if it lets us; `ask`: the
@@ -212,7 +228,19 @@ impl Listener {
             };
             let mut seen: std::collections::HashSet<u32> = std::collections::HashSet::new();
             let mut first = true;
+            // Reading the list makes Windows parse every toast in it (~0.2
+            // Gcycles with a full Action Center), so it's read only when
+            // Windows' own store of them changed, and once a minute anyway.
+            let store = db_files();
+            let mut last: Option<(Vec<Stamp>, std::time::Instant)> = None;
             while !quit.load(Ordering::Relaxed) {
+                let stamp = store.iter().map(|p| stamp_of(p)).collect::<Vec<_>>();
+                let fresh = last.as_ref().is_some_and(|(s, at)| *s == stamp && !stamp.is_empty() && stamp.iter().all(Option::is_some) && at.elapsed() < LOOK_ANYWAY);
+                if fresh {
+                    std::thread::sleep(POLL);
+                    continue;
+                }
+                last = Some((stamp, std::time::Instant::now()));
                 if let Ok(list) = listener.GetNotificationsAsync(NotificationKinds::Toast).and_then(|op| op.get()) {
                     let now = ids(&list);
                     for (id, n) in &now {
