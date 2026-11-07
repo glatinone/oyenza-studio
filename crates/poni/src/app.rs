@@ -1125,6 +1125,14 @@ impl App {
         // Clicking a notice jumps to its page (a new version's
         // may be waiting under a volume change or a game's readout).
         let shown = self.mode == Mode::Notice;
+        // A permission card: its terminal comes in front (to read the whole
+        // request there); the card stays until the question is answered.
+        if shown {
+            if let Some(a) = self.st.asks.first() {
+                services::claude::focus_terminal(if a.session.is_empty() { &a.project } else { &a.session });
+                return;
+            }
+        }
         // Another app's notification opens that app instead.
         let mut opened = false;
         if let Some(n) = self.st.notice.take_if(|_| shown) {
@@ -1166,6 +1174,17 @@ impl App {
         if !opened {
             self.expand();
         }
+    }
+
+    /// Which of the permission card's answers is under the press, if any.
+    fn ask_choice_at_press(&self) -> Option<services::claude_ask::Choice> {
+        use crate::pill::notice::{ASK_ALLOW, ASK_ALWAYS, ASK_DENY};
+        use services::claude_ask::Choice;
+        if self.st.asks.is_empty() || self.mode != Mode::Notice {
+            return None;
+        }
+        let id = self.input.pressed_id?;
+        [(ASK_ALLOW, Choice::Allow), (ASK_ALWAYS, Choice::Always), (ASK_DENY, Choice::Deny)].into_iter().find(|(k, _)| id == wid(k)).map(|(_, c)| c)
     }
 
     fn release_mouse(&mut self) {
@@ -1269,8 +1288,13 @@ impl App {
                 self.input.pressed_id = self.hit_at(p).map(|h| h.id);
                 unsafe { SetCapture(self.hwnd) };
                 if !self.expanded {
-                    let inline = self.st.notice.as_ref().and_then(|n| n.inline).filter(|_| self.input.pressed_id == Some(wid("notice.act")));
-                    if let Some(a) = inline {
+                    let inline = self.st.notice.as_ref().and_then(|n| n.inline).filter(|_| self.input.pressed_id == Some(wid("notice.act")) && self.st.asks.is_empty());
+                    let ask = self.ask_choice_at_press();
+                    if let Some(c) = ask {
+                        // A permission card's answer, the same way.
+                        self.input.pressed_id = None;
+                        self.answer_claude_ask(c);
+                    } else if let Some(a) = inline {
                         // The notice's inline pill acts in place without
                         // expanding. The press is consumed here, so the
                         // release can't click the pill a second time.
@@ -1816,7 +1840,7 @@ impl App {
                 }
                 if !self.hovering || self.expanded || self.grab.is_some() {
                     self.hover_arm = None;
-                } else if self.mode == Mode::Notice && self.st.notice.as_ref().is_some_and(|n| n.inline.is_some()) {
+                } else if self.mode == Mode::Notice && (self.st.notice.as_ref().is_some_and(|n| n.inline.is_some()) || !self.st.asks.is_empty()) {
                     // A notice with an inline pill stays put under a resting
                     // pointer so the pill can be clicked (a click on the rest
                     // of the notice still opens its page). The dwell stays
@@ -2644,6 +2668,15 @@ impl App {
                 }
             }
             AppEvent::Claude(ev) => self.on_claude(ev),
+            AppEvent::ClaudeAsk(ask) => self.on_claude_ask(ask),
+            AppEvent::ClaudeAskGone(id) => {
+                let before = self.st.asks.len();
+                self.st.asks.retain(|a| a.id != id);
+                if self.st.asks.len() != before {
+                    pinfo!("claude ask {id}: card gone");
+                    self.request_frame();
+                }
+            }
             AppEvent::TeamsCall(on) => {
                 self.teams_call = on;
                 if on {
@@ -3612,8 +3645,37 @@ impl App {
         if ev.change == ClaudeChange::Done && approval_shown(&self.st) {
             return;
         }
+        // The permission card asks already, with its buttons.
+        if ev.change == ClaudeChange::Approval && self.st.asks.iter().any(|a| a.pid == ev.pid || a.pid == 0) {
+            return;
+        }
         pinfo!("claude: {} {:?}", ev.config, ev.change);
         self.st.notify(Icon::Claude, color, ev.name.clone(), format!("{what} · {}", ev.config), secs, Some(NoticeAction::FocusClaude(ev.name)));
+        self.request_frame();
+    }
+
+    /// A Claude Code session asks for a permission: its card, with Allow,
+    /// Always and Deny, waits on the closed island (after any before it).
+    /// The plain "Needs your approval" notice gives way to it.
+    fn on_claude_ask(&mut self, ask: crate::state::ClaudeAsk) {
+        if self.st.notice.as_ref().is_some_and(|n| n.icon == Icon::Claude && n.color == palette::ORANGE) {
+            self.st.notice = None;
+        }
+        pinfo!("claude ask {}: card ({} waiting)", ask.id, self.st.asks.len() + 1);
+        self.st.asks.push(ask);
+        self.st.chime();
+        self.request_frame();
+    }
+
+    /// A click on the first permission card's Allow, Always or Deny: the
+    /// answer goes to the hook waiting for it, and the card goes.
+    fn answer_claude_ask(&mut self, choice: services::claude_ask::Choice) {
+        if self.st.asks.is_empty() {
+            return;
+        }
+        let ask = self.st.asks.remove(0);
+        let taken = services::claude_ask::answer(ask.id, choice);
+        pinfo!("claude ask {}: {:?} clicked{}", ask.id, choice, if taken { "" } else { " (already over)" });
         self.request_frame();
     }
 

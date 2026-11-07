@@ -214,7 +214,9 @@ pub fn collapsed_mode(st: &AppState) -> Mode {
     // one click away), and shows again after.
     let recording = (st.rec_live() && st.record_on()) || (st.notes.listening() && st.notes_on());
     let waits = st.notice.as_ref().is_some_and(|n| n.stays()) && (st.hud.is_some() || st.game.active || recording);
-    if st.notice.is_some() && !waits {
+    // A Claude Code permission question takes the island until it's
+    // answered, here or in the terminal.
+    if (st.notice.is_some() && !waits) || !st.asks.is_empty() {
         Mode::Notice
     } else if let Some(h) = &st.hud {
         Mode::Hud(hud_tag(&h.kind))
@@ -313,6 +315,7 @@ pub fn geom(m: &Mode, st: &AppState) -> Geom {
         Mode::Hud(HudTag::Volume) => Geom::new(316.0, 40.0, 19.0),
         Mode::Hud(HudTag::Charging) | Mode::Hud(HudTag::LowBattery) => Geom::new(300.0, 40.0, 19.0),
         Mode::Hud(HudTag::Bluetooth) => Geom::new(336.0, 46.0, 22.0),
+        Mode::Notice if !st.asks.is_empty() => crate::pill::notice::ask_geom(),
         Mode::Notice => Geom::new(372.0, 52.0, 24.0),
         Mode::Expanded(p) => {
             let h = pages::HEADER_H + pages::content_height(*p, st) + pages::PAD;
@@ -947,6 +950,11 @@ fn inline_done(st: &AppState, a: InlineAction) -> bool {
 }
 
 fn draw_notice(ui: &mut Ui, st: &mut AppState, body: Rect) {
+    // A Claude Code permission question comes first (its card).
+    if let Some(a) = st.asks.first() {
+        crate::pill::notice::draw_ask(ui, a, st.asks.len(), body, true);
+        return;
+    }
     let Some(n) = st.notice.clone() else { return };
     let cy = body.center().y;
     // Disc and inline pill keep the same 16 DIP inset from the ends.

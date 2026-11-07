@@ -196,6 +196,27 @@ pub enum NotifyAccess {
     Failed,
 }
 
+/// A Claude Code permission question waiting on the island
+/// (`services::claude_ask`): its card has Allow, Always and Deny.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct ClaudeAsk {
+    pub id: u64,
+    /// The claude.exe that asks (0 when unknown).
+    pub pid: u32,
+    /// The session's own title, when it has one yet.
+    pub session: String,
+    /// The folder it works in ("oyenza-studio").
+    pub project: String,
+    /// "Origin", "Loka", ...: which Claude Code config.
+    pub config: String,
+    /// "Bash", "Edit", "Gmail · send_email".
+    pub tool: String,
+    /// What it would do: the command, the file, the address.
+    pub summary: String,
+    /// Claude Code offers a rule ("Yes, and don't ask again"): Always shows.
+    pub always: bool,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Notice {
     pub icon: Icon,
@@ -797,6 +818,9 @@ pub struct AppState {
     pub power: PowerState,
     pub hud: Option<Hud>,
     pub notice: Option<Notice>,
+    /// Claude Code's permission questions, oldest first: the first one's
+    /// card takes the closed island over any notice until it is answered.
+    pub asks: Vec<ClaudeAsk>,
     pub stats: SysStats,
     /// The System page's readings and their last minute (empty while it's closed).
     pub system: poni_core::sysmon::Monitor,
@@ -922,6 +946,7 @@ impl AppState {
             power: PowerState::default(),
             hud: None,
             notice: None,
+            asks: Vec::new(),
             stats: SysStats::default(),
             system: poni_core::sysmon::Monitor::default(),
             game: GameState::default(),

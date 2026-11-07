@@ -10,6 +10,7 @@ pub mod backdrop;
 pub mod bluetooth;
 pub mod calls;
 pub mod claude;
+pub mod claude_ask;
 mod claude_token;
 pub mod clipboard;
 pub mod frames;
@@ -60,6 +61,7 @@ pub struct Services {
     _audio: Option<audio::AudioService>,
     _bluetooth: Option<bluetooth::BluetoothService>,
     _claude: Option<claude::ClaudeService>,
+    _claude_ask: Option<claude_ask::ClaudeAskService>,
     _meetings: Option<meetings::MeetingsService>,
     _calls: Option<calls::CallsService>,
     fullscreen: Option<fullscreen::FullscreenWatcher>,
@@ -96,6 +98,7 @@ impl Services {
         let audio = started("audio", audio::AudioService::start(sink.clone()));
         let bluetooth = started("bluetooth", bluetooth::BluetoothService::start(sink.clone()));
         let claude = started("claude sessions", claude::ClaudeService::start(sink.clone()));
+        let claude_ask = started("claude ask", claude_ask::ClaudeAskService::start(sink.clone()));
         let meetings = started("meetings", meetings::MeetingsService::start(sink.clone()));
         let calls = started("calls", calls::CallsService::start(sink.clone()));
         let fullscreen = started("fullscreen", fullscreen::FullscreenWatcher::start(helper, sink.clone()));
@@ -115,7 +118,7 @@ impl Services {
             .map(|a| a.id)
             .collect();
         let addons = started("add-ons", addons::AddonService::start(sink.clone(), on));
-        Self { media, lyrics, _audio: audio, _bluetooth: bluetooth, _claude: claude, _meetings: meetings, _calls: calls, fullscreen, oyenza, pairdrop, addons, stocks: std::cell::OnceCell::new(), usage: std::cell::OnceCell::new(), downloader: std::cell::OnceCell::new(), sink: sink.clone() }
+        Self { media, lyrics, _audio: audio, _bluetooth: bluetooth, _claude: claude, _claude_ask: claude_ask, _meetings: meetings, _calls: calls, fullscreen, oyenza, pairdrop, addons, stocks: std::cell::OnceCell::new(), usage: std::cell::OnceCell::new(), downloader: std::cell::OnceCell::new(), sink: sink.clone() }
     }
 
     pub fn stop(self, _helper: HWND) {

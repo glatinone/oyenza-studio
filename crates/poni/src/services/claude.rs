@@ -158,6 +158,25 @@ fn name_of(s: &Session) -> String {
     transcript_title(&s.tx).filter(|t| !t.is_empty()).unwrap_or_else(|| if s.topic.is_empty() { "Claude".into() } else { s.topic.clone() })
 }
 
+/// The session's own title in its transcript, for a permission card.
+pub fn transcript_title_of(tx: &str) -> Option<String> {
+    transcript_title(tx).filter(|t| !t.is_empty())
+}
+
+/// Which Claude Code config a transcript belongs to: "Origin" for
+/// `~\.claude`, "Loka" for `~\.claude-loka`, else the folder's own suffix.
+pub fn config_name(tx: &str) -> String {
+    let lower = tx.to_ascii_lowercase().replace('/', "\\");
+    let Some(dir) = lower.split('\\').find(|p| p.starts_with(".claude")) else { return "Claude".into() };
+    match dir.trim_start_matches(".claude").trim_start_matches(['-', '_', '.']) {
+        "" => "Origin".into(),
+        rest => {
+            let mut c = rest.chars();
+            c.next().map(|f| f.to_uppercase().chain(c).collect()).unwrap_or_default()
+        }
+    }
+}
+
 fn transcript_title(tx: &str) -> Option<String> {
     use std::io::{Read, Seek, SeekFrom};
     let mut f = std::fs::File::open(tx).ok()?;
@@ -250,6 +269,9 @@ mod tests {
         assert_eq!(config_of(&s.tx), "Loka");
         assert_eq!(config_of("C:\\Users\\k\\.claude\\projects\\p\\a.jsonl"), "Origin");
         assert!(parse("done\u{1f}x").is_none());
+        assert_eq!(config_name("C:\\Users\\k\\.claude-loka\\projects\\p\\a.jsonl"), "Loka");
+        assert_eq!(config_name("C:/Users/k/.claude/projects/p/a.jsonl"), "Origin");
+        assert_eq!(config_name("C:\\Users\\k\\.claude-zenmux\\projects\\a.jsonl"), "Zenmux");
     }
 
     #[test]

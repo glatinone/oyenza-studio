@@ -12,7 +12,7 @@
 use crate::gfx::{TextStyle, Weight};
 use crate::icons::Icon;
 use crate::island::Geom;
-use crate::state::{AppState, InlineAction, Notice};
+use crate::state::{AppState, ClaudeAsk, InlineAction, Notice};
 use crate::ui::{wid, PillStyle, Ui, PILL_SMALL};
 use poni_core::geom::{palette, Color, Point, Rect};
 use std::cell::{Cell, RefCell};
@@ -46,6 +46,25 @@ thread_local! {
     /// before the app draws its fade, so the fade draws this one: it fades
     /// as the pill shrinks instead of vanishing on the first frame.
     static LAST: RefCell<Option<Notice>> = const { RefCell::new(None) };
+    /// The Claude permission card last drawn (and how many waited), for its
+    /// fade the same way; `LAST_ASK_SHOWN` says which of the two left last.
+    static LAST_ASK: RefCell<Option<(ClaudeAsk, usize)>> = const { RefCell::new(None) };
+    static LAST_ASK_SHOWN: Cell<bool> = const { Cell::new(false) };
+}
+
+/// A Claude Code permission card: the question on top, the answers under
+/// it. As wide as Classic's notice plus room for three pills, and a
+/// rounded card rather than a capsule, as an open live activity is.
+pub const ASK_W: f32 = 404.0;
+pub const ASK_H: f32 = 92.0;
+pub const ASK_R: f32 = 26.0;
+/// The answers' widget ids (the app acts on them at mouse-down).
+pub const ASK_ALLOW: &str = "ask.allow";
+pub const ASK_ALWAYS: &str = "ask.always";
+pub const ASK_DENY: &str = "ask.deny";
+
+pub fn ask_geom() -> Geom {
+    Geom::new(ASK_W, ASK_H, ASK_R)
 }
 
 fn title_style() -> TextStyle {
@@ -69,6 +88,9 @@ fn fit(content: f32) -> f32 {
 }
 
 pub fn geom(st: &AppState) -> Option<Geom> {
+    if !st.asks.is_empty() {
+        return Some(ask_geom());
+    }
     let w = match st.notice.as_ref() {
         Some(n) => {
             let (k, w) = FIT.with(|f| f.get());
@@ -135,6 +157,27 @@ fn ink_on(fill: Color) -> Color {
 
 pub fn draw(ui: &mut Ui, st: &mut AppState, body: Rect) -> bool {
     let st = &*st;
+    if let Some(a) = st.asks.first() {
+        LAST_ASK_SHOWN.with(|l| l.set(true));
+        LAST_ASK.with(|l| {
+            let mut l = l.borrow_mut();
+            if l.as_ref().is_none_or(|(b, n)| b != a || *n != st.asks.len()) {
+                *l = Some((a.clone(), st.asks.len()));
+            }
+        });
+        draw_ask(ui, a, st.asks.len(), body, true);
+        return true;
+    }
+    // The card just left and this is its fade.
+    if st.notice.is_none() && LAST_ASK_SHOWN.with(|l| l.get()) {
+        LAST_ASK.with(|l| {
+            if let Some((a, n)) = l.borrow().as_ref() {
+                draw_ask(ui, a, *n, body, false);
+            }
+        });
+        return true;
+    }
+    LAST_ASK_SHOWN.with(|l| l.set(false));
     match st.notice.as_ref() {
         Some(n) => {
             LAST.with(|l| {
@@ -207,6 +250,59 @@ fn draw_notice(ui: &mut Ui, st: &AppState, n: &Notice, body: Rect) {
             let style = if icon.is_some() { PillStyle::Primary(color) } else { PillStyle::Utility };
             ui.pill(wid("notice.act"), r, label, icon, style);
         }
+    }
+}
+
+/// The permission card in `body` (both themes draw it): Claude's disc, the
+/// tool with where it runs, what it would do; then Deny, Always (when
+/// Claude Code offers a rule) and Allow at the right, and how many more
+/// wait at the left. `live` = it takes clicks (not its fade).
+pub fn draw_ask(ui: &mut Ui, a: &ClaudeAsk, waiting: usize, body: Rect, live: bool) {
+    let (w, h) = (body.w.max(ASK_W), body.h.max(ASK_H));
+    let lay = Rect::new(body.center().x - w / 2.0, body.y, w, h);
+    let pad = ASK_R - DISC / 2.0;
+    let c = Point::new(lay.x + ASK_R, lay.y + ASK_R);
+    ui.c.fill_circle(c, DISC / 2.0, palette::ORANGE);
+    ui.c.icon(Icon::Claude, Rect::from_center(c, GLYPH, GLYPH), ink_on(palette::ORANGE));
+
+    let tx = lay.x + ASK_R + DISC / 2.0 + 10.0;
+    let tw = (lay.right() - pad - 6.0 - tx).max(0.0);
+    let place = [a.project.as_str(), a.config.as_str()].into_iter().filter(|s| !s.is_empty()).collect::<Vec<_>>().join(" \u{b7} ");
+    crate::activities::text_with_dim(ui, &a.tool, &place, Rect::new(tx, c.y - 17.0, tw, 20.0), title_style());
+    let what = if a.summary.is_empty() { "Wants your permission" } else { a.summary.as_str() };
+    ui.c.text(what, Rect::new(tx, c.y, tw, 16.0), &subtitle_style());
+
+    // The whole card is a button (a click on it brings the terminal in
+    // front); the answers are registered after it so they win.
+    if live {
+        ui.button(wid("notice"), body);
+    }
+    let y = lay.bottom() - pad - PILL_SMALL;
+    let mut x = lay.right() - pad;
+    let answers = [
+        (ASK_ALLOW, "Allow", Some(Icon::Check), PillStyle::Primary(palette::GREEN), true),
+        (ASK_ALWAYS, "Always", None, PillStyle::Neutral, a.always),
+        (ASK_DENY, "Deny", None, PillStyle::UtilityAccent(palette::RED), true),
+    ];
+    for (id, label, icon, style, shown) in answers {
+        if !shown {
+            continue;
+        }
+        let bw = ui.pill_width(label, icon.is_some(), true).max(66.0);
+        x -= bw;
+        let r = Rect::new(x, y, bw, PILL_SMALL);
+        if live {
+            ui.pill(wid(id), r, label, icon, style);
+        } else {
+            ui.c.fill_rrect(r, r.h / 2.0, palette::SURFACE);
+        }
+        x -= 8.0;
+    }
+    // Left of the answers: more questions waiting, else the session's name.
+    let left = lay.x + pad + 4.0;
+    let note = if waiting > 1 { format!("+{} more waiting", waiting - 1) } else { a.session.clone() };
+    if !note.is_empty() && x - 8.0 > left {
+        ui.c.text(&note, Rect::new(left, y + 6.0, x - 8.0 - left, 16.0), &TextStyle::caption().color(palette::TEXT_DIM));
     }
 }
 

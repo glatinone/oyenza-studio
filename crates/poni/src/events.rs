@@ -142,6 +142,11 @@ pub enum AppEvent {
     /// A Claude Code session finished, waits for an approval or failed.
     #[cfg(windows)]
     Claude(crate::services::claude::ClaudeEvent),
+    /// A Claude Code session asks for a permission (its card).
+    ClaudeAsk(crate::state::ClaudeAsk),
+    /// That question is over without a click (answered in the terminal,
+    /// the hook ended, or it waited too long).
+    ClaudeAskGone(u64),
     /// The next meetings in Outlook's calendar (read every few minutes).
     #[cfg(windows)]
     Meetings(Vec<crate::services::meetings::Meeting>),

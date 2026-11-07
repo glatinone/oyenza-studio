@@ -136,6 +136,9 @@ if ($running) {
 }
 if (Test-Path $exe) { Copy-Item $exe (Join-Path $installDir 'poni.prev.exe') -Force }
 Copy-Item $built $exe -Force
+# Claude Code's permission hook (step 8): a tiny helper next to poni.exe.
+$ask = Join-Path (Split-Path $built) 'floaty-ask.exe'
+if (Test-Path $ask) { Copy-Item $ask (Join-Path $installDir 'floaty-ask.exe') -Force }
 
 # 4. Launcher: start.vbs sets CLAUDE_CONFIG_DIR for the AI tab, then starts Floaty.
 Step 'launcher (start.vbs)'
@@ -194,6 +197,33 @@ if (-not $NoWhatsApp) {
             & $py.Source (Join-Path $PSScriptRoot 'edge-allow-notifications.py') 'https://web.whatsapp.com' --jx $Jx 2>&1 | ForEach-Object { Note "$_" }
         } catch { Note 'skipped this time' } finally { $ErrorActionPreference = $eap }
     } else { Note 'skipped (needs Python)' }
+}
+
+# 8. Claude Code permission questions on the island: every Claude Code config here
+# (~\.claude and the -ClaudeConfig one) runs floaty-ask.exe as a PermissionRequest
+# hook, next to the hooks it has. The terminal still asks too; nothing answers by itself.
+$askExe = Join-Path $installDir 'floaty-ask.exe'
+if (Test-Path $askExe) {
+    Step 'Claude Code permission cards'
+    # Unquoted when it has no spaces: Claude Code may run a hook with bash or with
+    # PowerShell, and to PowerShell a quoted path is only a string.
+    $cmd = $askExe.Replace('\', '/'); if ($cmd -match ' ') { $cmd = '& "' + $cmd + '"' }
+    foreach ($cfg in @((Join-Path $HOME '.claude'), $ClaudeConfig) | Select-Object -Unique) {
+        if (-not (Test-Path $cfg)) { continue }
+        $file = Join-Path $cfg 'settings.json'
+        # UTF-8 without a BOM both ways (Claude Code can't read a BOM; Windows
+        # PowerShell's Get-Content/Set-Content would add one or misread).
+        $text = if (Test-Path $file) { [IO.File]::ReadAllText($file) } else { '{}' }
+        if ($text -match 'floaty-ask\.exe') { Note "$cfg already asks through Floaty"; continue }
+        $json = $text | ConvertFrom-Json
+        if (-not $json.hooks) { $json | Add-Member -NotePropertyName hooks -NotePropertyValue ([pscustomobject]@{}) }
+        $entry = [pscustomobject]@{ hooks = @([pscustomobject]@{ type = 'command'; command = $cmd; timeout = 3600 }) }
+        $list = @($json.hooks.PermissionRequest | Where-Object { $_ }) + $entry
+        $json.hooks | Add-Member -NotePropertyName PermissionRequest -NotePropertyValue $list -Force
+        if (Test-Path $file) { Copy-Item $file "$file.bak-floaty" -Force }
+        [IO.File]::WriteAllText($file, ($json | ConvertTo-Json -Depth 64), (New-Object Text.UTF8Encoding $false))
+        Note "$cfg asks through Floaty (backup: settings.json.bak-floaty)"
+    }
 }
 
 if (-not $NoStart) {
