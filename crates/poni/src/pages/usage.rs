@@ -1666,9 +1666,9 @@ mod tests {
         let mut st = state();
         let sign_in = Some(Act { label: "Sign in".into(), does: Does::SignIn });
         for (t, title, line) in [
-            (Trouble::SignedOut, "Not signed in", "Sign in to Claude Code or the Claude app on this computer"),
-            (Trouble::Expired, "Sign-in expired", "Open Claude Code or the Claude app once to refresh"),
-            (Trouble::Refused, "Sign-in not accepted", "Sign in to Claude Code or the Claude app again on this computer"),
+            (Trouble::SignedOut, "Not signed in", "Sign in to Claude Loka or the Claude app on this computer"),
+            (Trouble::Expired, "Sign-in expired", "Open Claude Loka or the Claude app once to refresh"),
+            (Trouble::Refused, "Sign-in not accepted", "Sign in to Claude Loka or the Claude app again on this computer"),
         ] {
             read(&mut st, ProviderId::Claude, None, Some(t));
             assert_eq!(parts(&st, ProviderId::Claude), [Part::Trouble { title: title.into(), line: line.into(), act: sign_in.clone() }]);

@@ -519,7 +519,12 @@ mod tests {
 
     #[test]
     fn every_service_has_a_mark_of_its_own() {
-        let marks: Vec<Icon> = ProviderId::ALL.into_iter().map(service).collect();
+        // Claude Code's accounts (Loka, Origin, MBG) are one service, one mark.
+        let account = |id: ProviderId| matches!(id, ProviderId::ClaudeOrigin | ProviderId::ClaudeMbg);
+        for id in ProviderId::ALL.into_iter().filter(|&id| account(id)) {
+            assert_eq!(service(id), Icon::Claude, "{id:?}");
+        }
+        let marks: Vec<Icon> = ProviderId::ALL.into_iter().filter(|&id| !account(id)).map(service).collect();
         for (n, i) in marks.iter().enumerate() {
             assert!(!marks[..n].contains(i), "{i:?} twice");
             assert!(!parts(*i).is_empty());
