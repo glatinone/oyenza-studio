@@ -131,9 +131,18 @@ pub fn sings(st: &AppState) -> bool {
 
 /// Whether the pill sings this song with readings under its lines (two
 /// rows): it sings, readings are on, and some line has one. For the whole
-/// song, as [`sings`] is.
+/// song, as [`sings`] is. A song without readings (Spanish, English) that
+/// has a translation (Lyrics translation) shows that under its lines instead.
 pub fn reads(st: &AppState) -> bool {
-    sings(st) && st.settings.lyrics_pronunciation && st.lyrics.ruby.iter().any(|p| p.iter().any(|r| !r.roman.is_empty()))
+    sings(st) && (has_readings(st) || has_translation(st))
+}
+
+fn has_readings(st: &AppState) -> bool {
+    st.settings.lyrics_pronunciation && st.lyrics.ruby.iter().any(|p| p.iter().any(|r| !r.roman.is_empty()))
+}
+
+fn has_translation(st: &AppState) -> bool {
+    st.settings.lyrics_translation && st.lyrics.translation.iter().any(|t| !t.is_empty())
 }
 
 /// The lyrics the pill follows for the song playing now (see [`sings`]).
@@ -318,8 +327,12 @@ fn line_text(st: &AppState, i: usize) -> Option<&str> {
     st.lyrics.lyrics.as_ref()?.lines.get(i).map(|l| l.text.trim())
 }
 
-/// Line `i`'s reading in Latin letters, when readings are on and it has one.
+/// Line `i`'s reading in Latin letters, when readings are on and it has one;
+/// in a song without readings, its translation.
 fn reading_at(st: &AppState, i: usize) -> Option<String> {
+    if !has_readings(st) {
+        return st.lyrics.translation.get(i).filter(|t| st.settings.lyrics_translation && !t.is_empty()).cloned();
+    }
     let pieces = st.lyrics.ruby.get(i).filter(|_| st.settings.lyrics_pronunciation)?;
     romanize::reading(pieces)
 }
@@ -328,6 +341,9 @@ fn reading_at(st: &AppState, i: usize) -> Option<String> {
 /// readings are switched on or off, or when the Japanese readings add-on
 /// comes in and the song is read again.
 fn reading_sig(st: &AppState, i: usize) -> usize {
+    if !has_readings(st) {
+        return st.lyrics.translation.get(i).filter(|_| st.settings.lyrics_translation).map_or(0, |t| t.len() + 1);
+    }
     match st.lyrics.ruby.get(i) {
         Some(pieces) if st.settings.lyrics_pronunciation => pieces.iter().map(|p| p.roman.len() + 1).sum(),
         _ => 0,
@@ -525,7 +541,7 @@ mod tests {
             can_seek: true,
             track_key: key.clone(),
         });
-        st.lyrics = LyricsState { track_key: key, status: LyricsStatus::Found, lyrics: Some(parse_lrc(lrc)), source: "Sample".into(), ruby: Vec::new(), wants_ja_readings: false };
+        st.lyrics = LyricsState { track_key: key, status: LyricsStatus::Found, lyrics: Some(parse_lrc(lrc)), source: "Sample".into(), ruby: Vec::new(), wants_ja_readings: false, translation: Vec::new() };
         st
     }
 

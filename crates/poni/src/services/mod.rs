@@ -43,6 +43,7 @@ pub mod notifications;
 pub mod stocks;
 pub mod sysmon;
 pub mod sysstats;
+pub mod translate;
 pub mod update;
 pub mod usage;
 pub mod voice;
@@ -75,6 +76,8 @@ pub struct Services {
     /// Started the first time the AI tab opens or its notices are on
     /// ([`Services::usage_watch`]).
     usage: std::cell::OnceCell<Option<usage::UsageService>>,
+    /// Started at the first song with lyrics to translate ([`Services::translate_lyrics`]).
+    translate: std::cell::OnceCell<Option<translate::TranslateService>>,
     sink: EventSink,
 }
 
@@ -118,7 +121,7 @@ impl Services {
             .map(|a| a.id)
             .collect();
         let addons = started("add-ons", addons::AddonService::start(sink.clone(), on));
-        Self { media, lyrics, _audio: audio, _bluetooth: bluetooth, _claude: claude, _claude_ask: claude_ask, _meetings: meetings, _calls: calls, fullscreen, oyenza, pairdrop, addons, stocks: std::cell::OnceCell::new(), usage: std::cell::OnceCell::new(), downloader: std::cell::OnceCell::new(), sink: sink.clone() }
+        Self { media, lyrics, _audio: audio, _bluetooth: bluetooth, _claude: claude, _claude_ask: claude_ask, _meetings: meetings, _calls: calls, fullscreen, oyenza, pairdrop, addons, stocks: std::cell::OnceCell::new(), usage: std::cell::OnceCell::new(), downloader: std::cell::OnceCell::new(), translate: std::cell::OnceCell::new(), sink: sink.clone() }
     }
 
     pub fn stop(self, _helper: HWND) {
@@ -198,6 +201,14 @@ impl Services {
     pub fn request_lyrics(&self, s: &MediaSession) {
         if let Some(l) = &self.lyrics {
             l.request(s);
+        }
+    }
+
+    /// Translate a song's lyric lines into `to`; the answer comes back as
+    /// `AppEvent::LyricsTranslation` for `track_key`.
+    pub fn translate_lyrics(&self, track_key: &str, lines: Vec<String>, to: &str) {
+        if let Some(t) = self.translate.get_or_init(|| started("translate", translate::TranslateService::start(self.sink.clone()))) {
+            t.request(track_key, lines, to);
         }
     }
 

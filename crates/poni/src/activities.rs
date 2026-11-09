@@ -1073,7 +1073,7 @@ mod tests {
             track_key: key.clone(),
         });
         if let Some(l) = lrc {
-            st.lyrics = LyricsState { track_key: key, status: LyricsStatus::Found, lyrics: Some(parse_lrc(l)), source: "Sample".into(), ruby: Vec::new(), wants_ja_readings: false };
+            st.lyrics = LyricsState { track_key: key, status: LyricsStatus::Found, lyrics: Some(parse_lrc(l)), source: "Sample".into(), ruby: Vec::new(), wants_ja_readings: false, translation: Vec::new() };
         }
         st
     }

@@ -92,6 +92,13 @@ const ROMAN_GAP: f32 = 1.0;
 const PIECE_GAP: f32 = 0.42;
 /// Extra space between wrapped lines of pieces.
 const RUBY_LINE_GAP: f32 = 4.0;
+/// Lyrics translation: what the line means, under it (and under its
+/// reading), smaller and dimmer than both, wrapped like the line.
+const TRANS_SCALE: f32 = 0.62;
+const TRANS_ALPHA: f32 = 0.6;
+const TRANS_GAP: f32 = 3.0;
+/// Translation layouts share the size cache, keyed past any row index.
+const TRANS_KEY: usize = 1 << 24;
 /// Highlight a line slightly early so the scroll lands as the line starts.
 const LYRIC_LEAD_S: f64 = 0.12;
 /// Show "intro" dots before the first line when it starts this late.
@@ -811,11 +818,11 @@ pub(crate) fn draw_lyrics(
         }
         View::Synced(l) => {
             out.synced = true;
-            out.animating = draw_synced(ui, l, &lyr.ruby, pui, vp, a, fr, fresh, ctx, acts);
+            out.animating = draw_synced(ui, l, &lyr.ruby, &lyr.translation, pui, vp, a, fr, fresh, ctx, acts);
             format!("Lyrics: {source}")
         }
         View::Plain(l) => {
-            out.animating = draw_plain(ui, l, &lyr.ruby, pui, vp, a, fr, fresh, ctx);
+            out.animating = draw_plain(ui, l, &lyr.ruby, &lyr.translation, pui, vp, a, fr, fresh, ctx);
             format!("Lyrics: {source} \u{b7} Unsynced")
         }
     };
@@ -1000,6 +1007,28 @@ fn draw_ruby(ui: &mut Ui, a: &Anim, row: usize, size: f32, x: f32, y: f32, alpha
     }
 }
 
+fn trans_style(size: f32) -> TextStyle {
+    TextStyle::new((size * TRANS_SCALE).max(ts::CAPTION)).weight(Weight::Medium).wrap().top()
+}
+
+/// A translation line's size under a lyric at `size`, cached like the rows.
+fn measure_trans(ui: &mut Ui, a: &mut Anim, row: usize, size: f32, text: &str, wrap_w: f32) -> (f32, f32) {
+    let key = (TRANS_KEY + row, (size * 4.0).round() as u16);
+    if let Some(v) = a.sizes.get(&key) {
+        return *v;
+    }
+    let (w, h) = ui.c.measure(text, &trans_style(size), wrap_w);
+    let v = (w.min(wrap_w), h);
+    a.sizes.insert(key, v);
+    v
+}
+
+/// Draw a translation measured by [`measure_trans`] with its top left at (`x`, `y`).
+#[allow(clippy::too_many_arguments)]
+fn draw_trans(ui: &mut Ui, text: &str, size: f32, x: f32, y: f32, wrap_w: f32, h: f32, alpha: f32) {
+    ui.c.text(text, Rect::new(x, y, wrap_w, h + 2.0), &trans_style(size).color(Color::white(alpha * TRANS_ALPHA)));
+}
+
 /// One row of the synced view (a line, or an instrumental/intro gap).
 struct Row<'a> {
     r: usize,
@@ -1016,6 +1045,10 @@ struct Row<'a> {
     text: &'a str,
     /// The line's pieces with their readings, when it is shown pronounced.
     ruby: Option<&'a [Ruby]>,
+    /// The line's translation (Lyrics translation), under it.
+    trans: Option<&'a str>,
+    /// Height of the line itself at `size_q` (`lay_h` less the translation).
+    main_h: f32,
     wrap_w: f32,
     w: f32,
     h: f32,
@@ -1074,6 +1107,7 @@ fn draw_synced(
     ui: &mut Ui,
     l: &Lyrics,
     rubies: &[Vec<Ruby>],
+    translations: &[String],
     pui: &mut PageUiState,
     vp: Rect,
     a: &mut Anim,
@@ -1127,13 +1161,20 @@ fn draw_synced(
         let k = size / size_q;
         let text = text_of(r);
         let ruby = if ctx.pronounce && !text.is_empty() { rubies.get(r - off).map(Vec::as_slice).filter(|p| !p.is_empty()) } else { None };
+        let trans = if text.is_empty() { None } else { translations.get(r - off).map(String::as_str).filter(|t| !t.is_empty()) };
         let wrap_w = vp.w * size_q / LYRIC_MAX;
-        let (w, lay_h) = match ruby {
+        let (mut w, main_h) = match ruby {
             _ if text.is_empty() => (dots_width(size) / k, size_q * LYRIC_LEADING * open),
             Some(p) => measure_ruby(ui, a, r, size_q * RUBY_SIZE, p, wrap_w),
             None => measure_row(ui, a, r, size_q, text, wrap_w),
         };
-        rows.push(Row { r, d, size, size_q, k, lay_h, text, ruby, wrap_w, w: w * k, h: lay_h * k, open, c: 0.0 });
+        let mut lay_h = main_h;
+        if let Some(t) = trans {
+            let (tw, th) = measure_trans(ui, a, r, size_q, t, wrap_w);
+            w = w.max(tw);
+            lay_h += TRANS_GAP + th;
+        }
+        rows.push(Row { r, d, size, size_q, k, lay_h, text, ruby, trans, main_h, wrap_w, w: w * k, h: lay_h * k, open, c: 0.0 });
     }
     let ik = k - lo;
     for i in ik + 1..rows.len() {
@@ -1211,7 +1252,11 @@ fn draw_synced(
                 draw_ruby(ui, a, row.r, row.size_q * RUBY_SIZE, vp.x, y, alpha);
             } else {
                 let ts = lyric_style(row.size_q).color(Color::white(alpha)).top();
-                ui.c.text(row.text, Rect::new(vp.x, y, row.wrap_w, row.lay_h + 2.0), &ts);
+                ui.c.text(row.text, Rect::new(vp.x, y, row.wrap_w, row.main_h + 2.0), &ts);
+            }
+            if let Some(t) = row.trans {
+                let top = row.main_h + TRANS_GAP;
+                draw_trans(ui, t, row.size_q, vp.x, y + top, row.wrap_w, row.lay_h - top, alpha);
             }
             ui.c.restore_transform(m0);
         }
@@ -1244,6 +1289,7 @@ fn draw_plain(
     ui: &mut Ui,
     l: &Lyrics,
     rubies: &[Vec<Ruby>],
+    translations: &[String],
     pui: &mut PageUiState,
     vp: Rect,
     a: &mut Anim,
@@ -1257,15 +1303,19 @@ fn draw_plain(
     let end = (start + PLAIN_MAX_LINES).min(lines.len());
     let shown = &lines[start..end];
     let pieces = |i: usize| if ctx.pronounce { rubies.get(start + i).map(Vec::as_slice).filter(|p| !p.is_empty()) } else { None };
+    let trans = |i: usize| translations.get(start + i).map(String::as_str).filter(|t| !t.is_empty());
 
     let mut heights: Vec<f32> = Vec::with_capacity(shown.len());
     for (i, line) in shown.iter().enumerate() {
         let text = line.text.trim();
-        let h = match pieces(i) {
+        let mut h = match pieces(i) {
             _ if text.is_empty() => STANZA_GAP,
             Some(p) => measure_ruby(ui, a, i, PLAIN_SIZE, p, vp.w).1,
             None => measure_row(ui, a, i, PLAIN_SIZE, text, vp.w).1,
         };
+        if let Some(t) = trans(i).filter(|_| !text.is_empty()) {
+            h += TRANS_GAP + measure_trans(ui, a, i, PLAIN_SIZE, t, vp.w).1;
+        }
         heights.push(h);
     }
     let total = heights.iter().sum::<f32>() + PLAIN_GAP * heights.len().saturating_sub(1) as f32;
@@ -1305,9 +1355,16 @@ fn draw_plain(
             let fb = lerp(1.0, smoothstep((vp.bottom() - cy) / EDGE_FADE), bottom_k);
             let alpha = palette::TEXT_DIM.a * ft * fb;
             if alpha > 0.01 {
+                let main_h = match trans(i) {
+                    Some(t) => h - TRANS_GAP - measure_trans(ui, a, i, PLAIN_SIZE, t, vp.w).1,
+                    None => h,
+                };
                 match pieces(i) {
                     Some(_) => draw_ruby(ui, a, i, PLAIN_SIZE, vp.x, y, alpha),
-                    None => ui.c.text(text, Rect::new(vp.x, y, vp.w, h + 2.0), &ts.color(Color::white(alpha))),
+                    None => ui.c.text(text, Rect::new(vp.x, y, vp.w, main_h + 2.0), &ts.color(Color::white(alpha))),
+                }
+                if let Some(t) = trans(i) {
+                    draw_trans(ui, t, PLAIN_SIZE, vp.x, y + main_h + TRANS_GAP, vp.w, h - main_h - TRANS_GAP, alpha);
                 }
             }
         }

@@ -133,6 +133,8 @@ pub enum AppEvent {
     /// Album art finished decoding for a track.
     MediaArt { track_key: String, art: Option<Image> },
     Lyrics { track_key: String, result: LyricsResult },
+    /// Each lyric line's translation ("" for none), `services::translate`.
+    LyricsTranslation { track_key: String, lines: Vec<String> },
     /// The outcome of checking or using the user's Apple Music token.
     AppleMusic(AppleMusicStatus),
     /// Master volume changed (0..=1).

@@ -2595,7 +2595,23 @@ impl SelfTest {
             let ok = if matches!(analyzer.as_str(), "required" | "off") { lines_read == needing } else { lines_read > 0 };
             self.checks.push(check("lyrics-pronunciation", ok, format!("{lines_read} of {needing} {lang} lines read in Latin letters")));
         }
-        self.lyrics = LyricsState { track_key: self.track_key.clone(), status: LyricsStatus::Found, lyrics: Some(parsed), source: "Sample".into(), ruby, wants_ja_readings };
+        // PONI_SELFTEST_TRANSLATE=<lang> translates the song for real (it needs
+        // the network), so the screenshots show the Lyrics translation lines.
+        let translation = std::env::var("PONI_SELFTEST_TRANSLATE").ok().filter(|to| !to.trim().is_empty()).map_or_else(Vec::new, |to| {
+            let got = std::thread::scope(|s| {
+                s.spawn(|| {
+                    let _com = crate::services::http::MtaGuard::new();
+                    let client = crate::services::http::Client::new("Floaty-selftest").map_err(|e| e.to_string())?;
+                    poni_core::translate::translate_song(&texts, to.trim(), |u| client.get(u, std::time::Duration::from_secs(10)).map(|r| r.body).map_err(|e| e.to_string()))
+                })
+                .join()
+                .unwrap_or_else(|_| Err("the translation thread panicked".into()))
+            });
+            let n = got.as_ref().map_or(0, |l| l.iter().filter(|t| !t.is_empty()).count());
+            self.checks.push(check("lyrics-translation", n > 0, got.as_ref().map_or_else(|e| e.clone(), |_| format!("{n} lines translated into {}", to.trim()))));
+            got.unwrap_or_default()
+        });
+        self.lyrics = LyricsState { track_key: self.track_key.clone(), status: LyricsStatus::Found, lyrics: Some(parsed), source: "Sample".into(), ruby, wants_ja_readings, translation };
 
         seed_tasks(st);
         self.health = Some(sample_health(st));

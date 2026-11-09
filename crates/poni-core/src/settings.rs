@@ -109,6 +109,11 @@ pub struct Settings {
     pub lyrics_pronunciation: bool,
     /// Shift synced lyrics: positive shows each line earlier (ms).
     pub lyrics_offset_ms: i32,
+    /// A translation line under each lyric line (`translate`), for learning
+    /// the song's language.
+    pub lyrics_translation: bool,
+    /// The language translations are written in (ISO 639-1: "id", "en").
+    pub translate_to: String,
     pub hud_volume: bool,
     pub hud_power: bool,
     pub hud_bluetooth: bool,
@@ -262,6 +267,8 @@ impl Default for Settings {
             lyrics: true,
             lyrics_pronunciation: true,
             lyrics_offset_ms: 0,
+            lyrics_translation: true,
+            translate_to: "id".into(),
             hud_volume: true,
             hud_power: true,
             hud_bluetooth: true,
@@ -370,6 +377,9 @@ impl Settings {
         }
         self.hover_delay_ms = self.hover_delay_ms.min(2000);
         self.lyrics_offset_ms = self.lyrics_offset_ms.clamp(-5000, 5000);
+        if !self.translate_to.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') || !(2..=7).contains(&self.translate_to.len()) {
+            self.translate_to = "id".into();
+        }
         self.collapse_delay_ms = self.collapse_delay_ms.min(5000);
         self.affirm_every_min = self.affirm_every_min.min(240);
         if !self.expanded_width.is_finite() {

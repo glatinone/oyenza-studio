@@ -969,7 +969,7 @@ fn media(st: &mut AppState) {
         can_seek: true,
         track_key: MediaSession::make_track_key(TITLE, ARTIST, ALBUM),
     });
-    st.lyrics = LyricsState { track_key: MediaSession::make_track_key(TITLE, ARTIST, ALBUM), status: LyricsStatus::Found, lyrics: Some(parse_lrc(LYRICS_LRC)), source: "Sample".into(), ruby: Vec::new(), wants_ja_readings: false };
+    st.lyrics = LyricsState { track_key: MediaSession::make_track_key(TITLE, ARTIST, ALBUM), status: LyricsStatus::Found, lyrics: Some(parse_lrc(LYRICS_LRC)), source: "Sample".into(), ruby: Vec::new(), wants_ja_readings: false, translation: Vec::new() };
 }
 
 /// Music playing the Japanese song with its `readings`, the Japanese

@@ -2336,6 +2336,20 @@ impl App {
         }
     }
 
+    /// Ask for the current lyrics' translation (Lyrics translation on, and
+    /// lines in): the answer is `AppEvent::LyricsTranslation`.
+    fn request_translation(&self) {
+        let s = &self.st.settings;
+        if !s.lyrics_translation || self.selftest.is_some() {
+            return;
+        }
+        let (Some(svc), Some(l)) = (self.services.as_ref(), self.st.lyrics.lyrics.as_ref()) else { return };
+        let lines: Vec<String> = l.lines.iter().map(|x| x.text.trim().to_string()).collect();
+        if lines.iter().any(|x| poni_core::translate::worth(x)) {
+            svc.translate_lyrics(&self.st.lyrics.track_key, lines, &s.translate_to);
+        }
+    }
+
     /// Apply side effects of a settings change (from the menu, a reload or a page).
     fn settings_changed(&mut self, before: &Settings) {
         // Show over games and Hide in full-screen apps follow each other.
@@ -2363,6 +2377,11 @@ impl App {
                     }
                 }
             }
+        }
+        let now = &self.st.settings;
+        if (now.lyrics_translation, &now.translate_to) != (before.lyrics_translation, &before.translate_to) {
+            self.st.lyrics.translation.clear();
+            self.request_translation();
         }
         self.st.pomodoro.cfg = self.st.settings.pomodoro.clone();
         // Prayer times: off stops it at once; a new place, or following the location again.
@@ -2477,6 +2496,7 @@ impl App {
             ToggleSystemHistory => s.system_history = !s.system_history,
             ToggleLyrics => s.lyrics = !s.lyrics,
             TogglePronunciation => s.lyrics_pronunciation = !s.lyrics_pronunciation,
+            ToggleTranslation => s.lyrics_translation = !s.lyrics_translation,
             SetHideFullscreen(hide) => s.hide_in_fullscreen = hide,
             ToggleGameStats => s.game_stats = !s.game_stats,
             ToggleGamePeek => s.game_peek = !s.game_peek,
@@ -2631,6 +2651,8 @@ impl App {
                             self.st.lyrics.source = source;
                             self.st.lyrics.ruby = ruby;
                             self.st.lyrics.wants_ja_readings = wants_ja_readings;
+                            self.st.lyrics.translation.clear();
+                            self.request_translation();
                             // The first Japanese song whose kanji went unread
                             // switches Japanese readings on, as its switch in
                             // Add-ons would: it downloads once (3.8 MB) and
@@ -2647,6 +2669,12 @@ impl App {
                         crate::events::LyricsResult::NotFound => self.st.lyrics.status = LyricsStatus::NotFound,
                         crate::events::LyricsResult::Error(e) => self.st.lyrics.status = LyricsStatus::Error(e),
                     }
+                }
+            }
+            AppEvent::LyricsTranslation { track_key, lines } => {
+                let fits = self.st.lyrics.lyrics.as_ref().is_some_and(|l| l.lines.len() == lines.len());
+                if self.st.lyrics.track_key == track_key && fits && self.st.settings.lyrics_translation {
+                    self.st.lyrics.translation = lines;
                 }
             }
             AppEvent::Volume { level, muted } => {

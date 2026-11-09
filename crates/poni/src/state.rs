@@ -79,11 +79,14 @@ pub struct LyricsState {
     /// switches the add-on on the first time, and the Music page shows how
     /// it comes in (or offers it, after a switch-off by hand).
     pub wants_ja_readings: bool,
+    /// Each line's meaning in the reader's language (`Settings::translate_to`,
+    /// `services::translate`); empty until it comes in, "" for a line without one.
+    pub translation: Vec<String>,
 }
 
 impl Default for LyricsState {
     fn default() -> Self {
-        Self { track_key: String::new(), status: LyricsStatus::Idle, lyrics: None, source: String::new(), ruby: Vec::new(), wants_ja_readings: false }
+        Self { track_key: String::new(), status: LyricsStatus::Idle, lyrics: None, source: String::new(), ruby: Vec::new(), wants_ja_readings: false, translation: Vec::new() }
     }
 }
 

@@ -58,6 +58,7 @@ pub enum MenuCmd {
     ToggleSystemHistory,
     ToggleLyrics,
     TogglePronunciation,
+    ToggleTranslation,
     /// true: hide in full-screen apps; false: stay on top of them.
     SetHideFullscreen(bool),
     /// Show over games (frame rate, GPU and CPU on the island over a game).
@@ -137,6 +138,7 @@ pub fn menu_items(s: &Settings, pinned: bool, oyenza: &OyenzaLink, recorder: boo
         MenuItem::Separator,
         item("Synced lyrics", MenuCmd::ToggleLyrics, s.lyrics),
         item("Lyrics pronunciation (romaji, pinyin, Korean)", MenuCmd::TogglePronunciation, s.lyrics_pronunciation),
+        item("Lyrics translation", MenuCmd::ToggleTranslation, s.lyrics_translation),
         apple_music_menu(),
         oyenza_menu(s, oyenza),
         item("Sounds", MenuCmd::ToggleSounds, s.sounds),
